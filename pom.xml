@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- The relativePath resolves inside the Orazaka workspace (krizaka/orazaka); a standalone
+         clone falls back to the orazaka-parent published on GitHub Packages. -->
+    <parent>
+        <groupId>com.orazaka</groupId>
+        <artifactId>orazaka-parent</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+        <relativePath>../../../orazaka-libs/orazaka-build/orazaka-parent/pom.xml</relativePath>
+    </parent>
+
+    <artifactId>orazaka-billing</artifactId>
+    <packaging>pom</packaging>
+    <name>orazaka-billing</name>
+    <description>Credits, wallets, plans, subscriptions, pricebook and metering (hold → settle → release) as a reusable billing service, with its contract (billing-api) and a typed HTTP client (billing-client).</description>
+
+    <url>https://github.com/krizaka/orazaka-billing</url>
+
+    <scm>
+        <url>https://github.com/krizaka/orazaka-billing</url>
+        <connection>scm:git:https://github.com/krizaka/orazaka-billing.git</connection>
+        <developerConnection>scm:git:git@github.com:krizaka/orazaka-billing.git</developerConnection>
+    </scm>
+
+    <properties>
+        <!-- GitHub Packages repository the modules below are published to (orazaka-parent). -->
+        <orazaka.repository>orazaka-billing</orazaka.repository>
+    </properties>
+
+    <modules>
+        <module>orazaka-billing-api</module>
+        <module>orazaka-billing-client</module>
+        <module>orazaka-billing-service</module>
+    </modules>
+</project>
