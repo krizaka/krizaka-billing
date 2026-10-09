@@ -36,7 +36,8 @@ Built for and used by [Orazaka](https://github.com/krizaka/orazaka); usable by a
 A caller **holds** credits before expensive work, then **settles** the actual cost or **releases** the hold; holds that
 are never settled expire. The ledger is append-only and every debit carries an idempotency key, on top of message
 deduplication: a redelivered settlement is processed once. Billing events leave through a transactional outbox
-(relayed by `krizaka-messaging`).
+(relayed by `krizaka-messaging`); it also implements `OutboxStore.append`, so an `EventPublisher` can write to it with
+its `messageId` and envelope headers (`billing_outbox.headers jsonb`), published as stored.
 
 ## Modules
 

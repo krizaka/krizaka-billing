@@ -1,16 +1,19 @@
 package com.krizaka.billing.service.application.service;
 
+import com.krizaka.messaging.outbox.NewOutboxMessage;
 import com.krizaka.messaging.outbox.OutboxMessage;
 import com.krizaka.messaging.outbox.OutboxStore;
 import com.krizaka.messaging.topology.MessagingExchanges;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
 
 /**
@@ -25,7 +28,9 @@ import tools.jackson.databind.ObjectMapper;
  * external engine be down for hours without a user noticing.
  *
  * <p>{@code message_id} is UNIQUE and becomes the AMQP message id, so the consumer-side dedup
- * downstream sees a stable identity across redeliveries.
+ * downstream sees a stable identity across redeliveries. {@code headers} travel as AMQP headers —
+ * the event envelope of a row written by krizaka-messaging's {@code EventPublisher} ({@link
+ * #append(NewOutboxMessage)}).
  */
 @Service
 public class OutboxService implements OutboxStore {
@@ -34,6 +39,11 @@ public class OutboxService implements OutboxStore {
   private static final int MAX_BACKOFF_SHIFT = 9;
 
   private static final long MAX_BACKOFF_SECONDS = 512;
+
+  private static final TypeReference<Map<String, String>> HEADERS = new TypeReference<>() {};
+
+  /** An event row carries no aggregate of its own: the type's aggregate, the message as its id. */
+  private static final String EVENT_AGGREGATE = "EVENT";
 
   private final JdbcTemplate jdbcTemplate;
   private final ObjectMapper objectMapper;
@@ -69,6 +79,32 @@ public class OutboxService implements OutboxStore {
   }
 
   /**
+   * Appends a row written by an {@code EventPublisher}: its message id and envelope headers are
+   * stored as given and published as stored. Call inside the business transaction.
+   *
+   * <p>The aggregate is the routing key's ({@code evt.subscription.changed} → {@code SUBSCRIPTION})
+   * and the aggregate id is the message id — an event row names no aggregate.
+   *
+   * @param message the row; its {@code messageId} must be a UUID ({@code message_id} is a UUID
+   *     column)
+   */
+  @Override
+  public void append(NewOutboxMessage message) {
+    UUID messageId = messageId(message.messageId());
+    jdbcTemplate.update(
+        "INSERT INTO billing_outbox (id, aggregate_type, aggregate_id, exchange, routing_key,"
+            + " message_id, payload, headers) VALUES (?, ?, ?, ?, ?, ?, ?::jsonb, ?::jsonb)",
+        UUID.randomUUID(),
+        aggregateOf(message.routingKey()),
+        messageId.toString(),
+        message.exchange(),
+        message.routingKey(),
+        messageId,
+        new String(message.body(), StandardCharsets.UTF_8),
+        objectMapper.writeValueAsString(message.headers()));
+  }
+
+  /**
    * Locks a batch of due events for this relay instance.
    *
    * <p>{@code FOR UPDATE SKIP LOCKED} rather than a plain select: two instances polling the same
@@ -82,7 +118,7 @@ public class OutboxService implements OutboxStore {
   @Override
   public List<OutboxMessage> lockPendingBatch(int batchSize) {
     return jdbcTemplate.query(
-        "SELECT id, exchange, routing_key, message_id, payload::text, attempts"
+        "SELECT id, exchange, routing_key, message_id, payload::text, headers::text, attempts"
             + " FROM billing_outbox WHERE published_at IS NULL AND next_attempt_at <= now()"
             + " ORDER BY created_at LIMIT ? FOR UPDATE SKIP LOCKED",
         (rs, rowNum) ->
@@ -92,7 +128,8 @@ public class OutboxService implements OutboxStore {
                 rs.getString("routing_key"),
                 rs.getObject("message_id", UUID.class).toString(),
                 rs.getString("payload").getBytes(StandardCharsets.UTF_8),
-                rs.getInt("attempts")),
+                rs.getInt("attempts"),
+                objectMapper.readValue(rs.getString("headers"), HEADERS)),
         batchSize);
   }
 
@@ -140,5 +177,22 @@ public class OutboxService implements OutboxStore {
     return jdbcTemplate.update(
         "DELETE FROM billing_outbox WHERE published_at IS NOT NULL AND published_at < ?",
         java.sql.Timestamp.from(before));
+  }
+
+  /** {@code evt.subscription.changed} → {@code SUBSCRIPTION}; anything shorter is an event. */
+  private static String aggregateOf(String routingKey) {
+    String[] segments = routingKey.split("\\.");
+    return segments.length > 2 && !segments[1].isBlank()
+        ? segments[1].toUpperCase(java.util.Locale.ROOT)
+        : EVENT_AGGREGATE;
+  }
+
+  private static UUID messageId(String messageId) {
+    try {
+      return UUID.fromString(messageId);
+    } catch (IllegalArgumentException e) {
+      throw new IllegalArgumentException(
+          "billing_outbox.message_id is a UUID; refusing messageId '" + messageId + "'", e);
+    }
   }
 }

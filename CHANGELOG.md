@@ -6,6 +6,17 @@ Every Krizaka JVM artifact is released at the same version.
 
 ## [Unreleased]
 
+### Added
+
+- `OutboxService` implements `krizaka-messaging`'s `OutboxStore.append(NewOutboxMessage)`: a row written by an
+  `EventPublisher` keeps its `messageId` and envelope headers, and the relay publishes them as AMQP headers
+  (`OutboxDrainIT`, real `70-billing.sql`).
+
+### Changed
+
+- `billing_outbox` gains `headers JSONB NOT NULL DEFAULT '{}'` (`infra/initdb/70-billing.sql`). An existing database
+  needs `ALTER TABLE billing_outbox ADD COLUMN IF NOT EXISTS headers JSONB NOT NULL DEFAULT '{}'::jsonb;`.
+
 ## [0.1.0]
 
 First release as a Krizaka building block (formerly `orazaka-billing`, part of the Orazaka platform).
