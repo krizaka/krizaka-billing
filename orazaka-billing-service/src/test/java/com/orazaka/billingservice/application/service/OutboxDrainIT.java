@@ -5,8 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.krizaka.messaging.outbox.OutboxMessage;
+import com.krizaka.test.container.ServiceRoles;
 import com.orazaka.test.architecture.SqlBoundaryRules;
-import com.orazaka.test.container.ServiceRoles;
 import com.zaxxer.hikari.HikariDataSource;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;

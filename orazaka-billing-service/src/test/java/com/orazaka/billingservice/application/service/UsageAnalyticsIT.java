@@ -3,10 +3,10 @@ package com.orazaka.billingservice.application.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.krizaka.test.container.ServiceRoles;
 import com.orazaka.billingservice.domain.model.ActorConsumption;
 import com.orazaka.billingservice.domain.model.CapabilityUsage;
 import com.orazaka.test.architecture.SqlBoundaryRules;
-import com.orazaka.test.container.ServiceRoles;
 import com.zaxxer.hikari.HikariDataSource;
 import java.math.BigDecimal;
 import java.nio.file.Path;

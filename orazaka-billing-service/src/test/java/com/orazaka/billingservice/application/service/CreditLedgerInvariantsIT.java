@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.krizaka.test.container.ServiceRoles;
 import com.orazaka.billing.domain.exception.InsufficientCreditsException;
 import com.orazaka.billing.domain.model.BillableCapability;
 import com.orazaka.billing.domain.model.BillableUnit;
@@ -15,7 +16,6 @@ import com.orazaka.billing.domain.model.MeteredStep;
 import com.orazaka.billing.domain.model.SettleCreditCommand;
 import com.orazaka.billingservice.domain.model.WalletSnapshot;
 import com.orazaka.test.architecture.SqlBoundaryRules;
-import com.orazaka.test.container.ServiceRoles;
 import com.zaxxer.hikari.HikariDataSource;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.math.BigDecimal;
