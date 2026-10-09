@@ -1,0 +1,116 @@
+# ==============================================================================
+# Orazaka Billing Service — application configuration (ADR-033)
+# ------------------------------------------------------------------------------
+# Internal service on :8095, reached by the conversation/job/automation services
+# over M2M-authenticated HTTP and by the admin console through the edge/BFF.
+#
+# NOTHING COMMERCIAL LIVES HERE. Plans, prices, entitlements, credit rates and the
+# enforcement mode are ROWS in krizaka_billing_db, admin-editable live (AGENTS.md
+# §4, design §12/§13). This file carries wiring only: ports, timeouts, the Lago
+# seam and the datasource.
+#
+# NO spring.datasource here — the connection is built by DataSourceConfig from the
+# krizaka.billing-service.datasource block below, so the shared .env's
+# SPRING_DATASOURCE_* (app database) can never hijack this service's pool.
+# ==============================================================================
+
+spring:
+  application:
+    name: krizaka-billing-service
+  threads:
+    virtual:
+      enabled: true
+
+  rabbitmq:
+    host: ${RABBITMQ_HOST:${SPRING_RABBITMQ_HOST:localhost}}
+    port: ${RABBITMQ_PORT:${SPRING_RABBITMQ_PORT:5672}}
+    username: ${RABBITMQ_USER:guest}
+    password: ${RABBITMQ_PASS:guest}
+    template:
+      observation-enabled: true
+    listener:
+      simple:
+        observation-enabled: true
+        acknowledge-mode: auto
+        default-requeue-rejected: false
+        # Exponential backoff (AGENTS.md §6); exhausted retries dead-letter to <queue>.dlq.
+        retry:
+          enabled: true
+          max-attempts: ${RABBITMQ_RETRY_MAX_ATTEMPTS:3}
+          initial-interval: ${RABBITMQ_RETRY_INITIAL_INTERVAL:1s}
+          multiplier: 2.0
+          max-interval: 10s
+
+server:
+  port: ${BILLING_PORT:8095}
+
+# Distributed tracing (Phase 0): OTLP/HTTP export to the local Jaeger container.
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info
+  endpoint:
+    health:
+      show-details: always
+  otlp:
+    tracing:
+      endpoint: ${OTEL_TRACES_ENDPOINT:http://localhost:4318/v1/traces}
+  tracing:
+    sampling:
+      probability: ${TRACING_SAMPLING_PROBABILITY:1.0}
+
+logging:
+  file:
+    name: ${BILLING_LOG:var/logs/billing-service.log}
+  logback:
+    rollingpolicy:
+      max-file-size: 1MB
+      total-size-cap: 10MB
+      max-history: 7
+  level:
+    com.krizaka.billing.service: DEBUG
+    org.springframework.amqp: INFO
+
+# ── Orazaka — service-owned wiring ────────────────────────────────────────────
+orazaka:
+  billing:
+    engine:
+      # The Lago seam stays dormant through phases 0–3 (design §13.8).
+      enabled: ${LAGO_ENABLED:false}
+      # 8098, not 8096: the studio service claimed 8096 (ADR-034 §3) and an opt-in
+      # profile yields to a first-class service. A stale default here would point
+      # the invoicing seam at the Studio API.
+      base-url: ${LAGO_API_URL:http://localhost:8098}
+      api-key: ${LAGO_API_KEY:}
+      sync-batch-size: ${LAGO_SYNC_BATCH_SIZE:200}
+      connect-timeout: ${LAGO_CONNECT_TIMEOUT:2s}
+      read-timeout: ${LAGO_READ_TIMEOUT:10s}
+
+# ── Krizaka platform kit ──────────────────────────────────────────────────────
+krizaka:
+  billing-service:
+    datasource:
+      url: ${BILLING_DB_URL:jdbc:postgresql://localhost:5432/krizaka_billing_db}
+      username: ${BILLING_DB_USERNAME:krizaka_billing}
+      password: ${BILLING_DB_PASSWORD}
+    sweeper:
+      # How often ACTIVE holds are checked against expires_at. The TTL itself is a DB row
+      # (billing.hold.ttl-seconds) — this is only the poll interval, which is bootstrap wiring.
+      interval: ${BILLING_SWEEPER_INTERVAL:60000}
+  messaging:
+    exchanges:
+      # The bus this service runs on belongs to the platform that hosts it: set EVENTS_EXCHANGE and
+      # DLX_EXCHANGE to join an existing one; standalone it creates and uses its own.
+      events: ${EVENTS_EXCHANGE:krizaka.events}
+      dead-letter: ${DLX_EXCHANGE:krizaka.dlx}
+    dedup:
+      # Claims are rows in this context's processed_messages table: durable, shared by every
+      # instance, arbitrated by its primary key.
+      store: jdbc
+  security:
+    jwt:
+      # The shared HS256 secret the identity service signs session and service tokens with.
+      # krizaka-security validates every request locally with it and refuses to start when it is
+      # shorter than 32 characters (256 bits).
+      secret: ${IDENTITY_JWT_SECRET:orazaka-local-dev-identity-jwt-secret-256bit!}
