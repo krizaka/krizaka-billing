@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.krizaka.messaging.outbox.NewOutboxMessage;
 import com.krizaka.messaging.outbox.OutboxMessage;
 import com.krizaka.messaging.topology.MessagingExchanges;
 import com.krizaka.test.container.ServiceRoles;
@@ -14,6 +15,7 @@ import java.nio.file.Path;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import javax.sql.DataSource;
 import org.junit.jupiter.api.AfterAll;
@@ -199,6 +201,41 @@ class OutboxDrainIT {
     }
 
     assertEquals(2, outboxService.lockPendingBatch(2).size());
+  }
+
+  @Test
+  @DisplayName("an EventPublisher's row keeps its message id and leaves with its envelope")
+  void anEventRowKeepsItsMessageIdAndHeaders() {
+    UUID messageId = UUID.randomUUID();
+    aggregateId = messageId.toString();
+    Map<String, String> envelope =
+        Map.of("kz-type", "evt.subscription.changed", "kz-version", "1", "kz-producer", "billing");
+
+    outboxService.append(
+        new NewOutboxMessage(
+            "krizaka.events",
+            "evt.subscription.changed",
+            messageId.toString(),
+            "{\"plan\":\"pro\"}".getBytes(StandardCharsets.UTF_8),
+            envelope));
+
+    OutboxMessage event = mine(outboxService.lockPendingBatch(100)).get(0);
+    assertEquals(messageId.toString(), event.messageId());
+    assertEquals(envelope, event.headers());
+    assertEquals("evt.subscription.changed", event.routingKey());
+    assertTrue(new String(event.body(), StandardCharsets.UTF_8).contains("pro"));
+    assertEquals(
+        "SUBSCRIPTION",
+        jdbcTemplate.queryForObject(
+            "SELECT aggregate_type FROM billing_outbox WHERE id = ?", String.class, event.id()));
+  }
+
+  @Test
+  @DisplayName("a row appended by hand leaves without headers")
+  void aHandAppendedRowHasNoHeaders() {
+    outboxService.append("SUBSCRIPTION", aggregateId, "evt.subscription.changed", "{}");
+
+    assertTrue(mine(outboxService.lockPendingBatch(100)).get(0).headers().isEmpty());
   }
 
   /** A payload with stable field names, so the verbatim-relay assertion is readable. */
