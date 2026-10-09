@@ -74,11 +74,6 @@ logging:
 
 # ── Orazaka — service-owned wiring ────────────────────────────────────────────
 orazaka:
-  identity:
-    jwt:
-      # Contract copy of the shared HS256 secret the identity service signs with; every
-      # host validates locally, so authorisation costs no per-request identity hop.
-      secret: ${IDENTITY_JWT_SECRET:orazaka-local-dev-identity-jwt-secret-256bit!}
   billing-service:
     datasource:
       url: ${BILLING_DB_URL:jdbc:postgresql://localhost:5432/orazaka_billing_db}
@@ -100,3 +95,17 @@ orazaka:
       sync-batch-size: ${LAGO_SYNC_BATCH_SIZE:200}
       connect-timeout: ${LAGO_CONNECT_TIMEOUT:2s}
       read-timeout: ${LAGO_READ_TIMEOUT:10s}
+
+# ── Krizaka platform kit ──────────────────────────────────────────────────────
+krizaka:
+  messaging:
+    dedup:
+      # Claims are rows in this context's processed_messages table: durable, shared by every
+      # instance, arbitrated by its primary key.
+      store: jdbc
+  security:
+    jwt:
+      # The shared HS256 secret the identity service signs session and service tokens with.
+      # krizaka-security validates every request locally with it and refuses to start when it is
+      # shorter than 32 characters (256 bits).
+      secret: ${IDENTITY_JWT_SECRET:orazaka-local-dev-identity-jwt-secret-256bit!}

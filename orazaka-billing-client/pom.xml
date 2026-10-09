@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>com.orazaka</groupId>
+        <groupId>com.krizaka.orazaka</groupId>
         <artifactId>orazaka-billing</artifactId>
         <version>1.0.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
@@ -16,8 +16,13 @@
     <description>Tier-2 SDK — the producer side of the billing contract: a NoOp and an HTTP adapter for CreditAuthorizationClient, selected at bootstrap so no call site ever branches on whether billing exists</description>
 
     <dependencies>
+        <!-- Krizaka platform kit: session-JWT security baseline and service-to-service tokens. -->
         <dependency>
-            <groupId>com.orazaka</groupId>
+            <groupId>com.krizaka</groupId>
+            <artifactId>krizaka-security</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.krizaka.orazaka</groupId>
             <artifactId>orazaka-billing-api</artifactId>
         </dependency>
         <dependency>

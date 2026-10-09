@@ -1,7 +1,7 @@
 package com.orazaka.billingservice.infrastructure.adapter.amqp;
 
+import com.krizaka.messaging.dedup.MessageDedup;
 import com.orazaka.billingservice.application.service.CreditLedgerService;
-import com.orazaka.billingservice.application.service.MessageDedupService;
 import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,14 +28,13 @@ class JobSettlementListener {
   private static final String CONSUMER = "billing-settlement";
 
   private final CreditLedgerService creditLedgerService;
-  private final MessageDedupService messageDedupService;
+  private final MessageDedup messageDedupService;
 
-  JobSettlementListener(
-      CreditLedgerService creditLedgerService, MessageDedupService messageDedupService) {
+  JobSettlementListener(CreditLedgerService creditLedgerService, MessageDedup messageDedupService) {
     this.creditLedgerService =
         Objects.requireNonNull(creditLedgerService, "CreditLedgerService cannot be null");
     this.messageDedupService =
-        Objects.requireNonNull(messageDedupService, "MessageDedupService cannot be null");
+        Objects.requireNonNull(messageDedupService, "MessageDedup cannot be null");
   }
 
   @RabbitListener(queues = "#{settlementQueue.name}")

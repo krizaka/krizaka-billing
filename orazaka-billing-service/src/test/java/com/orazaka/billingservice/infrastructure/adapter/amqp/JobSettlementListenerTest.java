@@ -9,9 +9,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import com.krizaka.messaging.dedup.MessageDedup;
 import com.orazaka.billing.domain.model.ConsumptionReport;
 import com.orazaka.billingservice.application.service.CreditLedgerService;
-import com.orazaka.billingservice.application.service.MessageDedupService;
 import java.math.BigDecimal;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,7 +27,7 @@ class JobSettlementListenerTest {
   private static final String MESSAGE_ID = "amqp-1";
 
   @Mock private CreditLedgerService creditLedgerService;
-  @Mock private MessageDedupService messageDedupService;
+  @Mock private MessageDedup messageDedupService;
 
   private JobSettlementListener listener;
   private AutoCloseable mocks;

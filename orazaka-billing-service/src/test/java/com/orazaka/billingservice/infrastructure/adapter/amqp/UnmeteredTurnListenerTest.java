@@ -8,9 +8,9 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.krizaka.messaging.dedup.MessageDedup;
 import com.orazaka.billing.domain.model.BillableCapability;
 import com.orazaka.billing.domain.model.UnmeteredTurn;
-import com.orazaka.billingservice.application.service.MessageDedupService;
 import com.orazaka.billingservice.application.service.UnmeteredTurnService;
 import java.time.Instant;
 import org.junit.jupiter.api.DisplayName;
@@ -21,7 +21,7 @@ class UnmeteredTurnListenerTest {
   private static final String MESSAGE_ID = "outbox-64";
 
   private final UnmeteredTurnService service = mock(UnmeteredTurnService.class);
-  private final MessageDedupService dedup = mock(MessageDedupService.class);
+  private final MessageDedup dedup = mock(MessageDedup.class);
   private final UnmeteredTurnListener listener = new UnmeteredTurnListener(service, dedup);
   private final UnmeteredTurn turn =
       new UnmeteredTurn(

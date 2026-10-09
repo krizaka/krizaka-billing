@@ -4,10 +4,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.orazaka.billingservice.domain.model.PendingOutboxEvent;
+import com.krizaka.messaging.outbox.OutboxMessage;
 import com.orazaka.test.architecture.SqlBoundaryRules;
 import com.orazaka.test.container.ServiceRoles;
 import com.zaxxer.hikari.HikariDataSource;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -97,7 +98,7 @@ class OutboxDrainIT {
         "UPDATE billing_outbox SET published_at = now() WHERE published_at IS NULL");
   }
 
-  private List<PendingOutboxEvent> mine(List<PendingOutboxEvent> batch) {
+  private List<OutboxMessage> mine(List<OutboxMessage> batch) {
     List<String> ids =
         jdbcTemplate.queryForList(
             "SELECT id::text FROM billing_outbox WHERE aggregate_id = ?",
@@ -111,7 +112,7 @@ class OutboxDrainIT {
   void drainsThenStopsReturningTheRow() {
     outboxService.append("SUBSCRIPTION", aggregateId, "evt.subscription.changed", "{\"a\":1}");
 
-    List<PendingOutboxEvent> first = mine(outboxService.lockPendingBatch(100));
+    List<OutboxMessage> first = mine(outboxService.lockPendingBatch(100));
     assertEquals(1, first.size());
     assertEquals("orazaka.events", first.get(0).exchange());
     assertEquals("evt.subscription.changed", first.get(0).routingKey());
@@ -128,21 +129,22 @@ class OutboxDrainIT {
   void relaysThePayloadAsStored() {
     outboxService.append("WALLET", aggregateId, "evt.usage.recorded", new Sample("video", 360));
 
-    PendingOutboxEvent event = mine(outboxService.lockPendingBatch(100)).get(0);
+    OutboxMessage event = mine(outboxService.lockPendingBatch(100)).get(0);
 
     // JSONB normalises key order and spacing, so the assertion is on content rather than layout —
     // what matters is that the relay never re-runs the event through a mapper whose shape may have
     // moved on since the event was recorded.
-    assertTrue(event.payload().contains("\"capability\""));
-    assertTrue(event.payload().contains("video"));
-    assertTrue(event.payload().contains("360"));
+    String payload = new String(event.body(), StandardCharsets.UTF_8);
+    assertTrue(payload.contains("\"capability\""));
+    assertTrue(payload.contains("video"));
+    assertTrue(payload.contains("360"));
   }
 
   @Test
   @DisplayName("a failed publish backs the row off instead of spinning on it")
   void failureBacksOff() {
     outboxService.append("SUBSCRIPTION", aggregateId, "evt.subscription.changed", "{}");
-    PendingOutboxEvent event = mine(outboxService.lockPendingBatch(100)).get(0);
+    OutboxMessage event = mine(outboxService.lockPendingBatch(100)).get(0);
 
     outboxService.recordFailure(event.id(), event.attempts());
 
@@ -159,7 +161,7 @@ class OutboxDrainIT {
   @DisplayName("a due row returns after its back-off elapses")
   void returnsAfterBackoffElapses() {
     outboxService.append("SUBSCRIPTION", aggregateId, "evt.subscription.changed", "{}");
-    PendingOutboxEvent event = mine(outboxService.lockPendingBatch(100)).get(0);
+    OutboxMessage event = mine(outboxService.lockPendingBatch(100)).get(0);
     outboxService.recordFailure(event.id(), event.attempts());
 
     jdbcTemplate.update(
@@ -173,7 +175,7 @@ class OutboxDrainIT {
   @DisplayName("housekeeping drops delivered rows and keeps undelivered ones as evidence")
   void purgeKeepsPendingRows() {
     outboxService.append("SUBSCRIPTION", aggregateId, "evt.subscription.changed", "{}");
-    PendingOutboxEvent delivered = mine(outboxService.lockPendingBatch(100)).get(0);
+    OutboxMessage delivered = mine(outboxService.lockPendingBatch(100)).get(0);
     outboxService.markPublished(delivered.id());
     jdbcTemplate.update(
         "UPDATE billing_outbox SET published_at = now() - INTERVAL '30 days' WHERE id = ?",
@@ -181,7 +183,7 @@ class OutboxDrainIT {
 
     outboxService.append("SUBSCRIPTION", aggregateId, "evt.subscription.canceled", "{}");
 
-    int purged = outboxService.purgePublishedBefore(Instant.now().minus(7, ChronoUnit.DAYS));
+    long purged = outboxService.purgePublishedBefore(Instant.now().minus(7, ChronoUnit.DAYS));
 
     assertTrue(purged >= 1);
     assertFalse(
@@ -204,7 +206,9 @@ class OutboxDrainIT {
 
   /** Minimal transactional wiring: real {@code @Transactional} proxies, no web/security/AMQP. */
   @Configuration
-  @EnableTransactionManagement
+  // Class proxies, as Spring Boot creates them in production: a service that implements a port
+  // (OutboxService is an OutboxStore) must still be injectable by its class.
+  @EnableTransactionManagement(proxyTargetClass = true)
   static class TestWiring {
 
     @Bean

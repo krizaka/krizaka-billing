@@ -1,5 +1,6 @@
 package com.orazaka.billing.client;
 
+import com.krizaka.security.token.ServiceTokenProvider;
 import com.orazaka.billing.domain.port.CreditAuthorizationClient;
 import com.orazaka.billing.domain.port.EntitlementProvider;
 import com.orazaka.billing.domain.port.PackPricingClient;

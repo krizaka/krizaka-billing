@@ -1,7 +1,7 @@
 package com.orazaka.billingservice.infrastructure.adapter.amqp;
 
+import com.krizaka.messaging.dedup.MessageDedup;
 import com.orazaka.billing.domain.model.UnmeteredTurn;
-import com.orazaka.billingservice.application.service.MessageDedupService;
 import com.orazaka.billingservice.application.service.UnmeteredTurnService;
 import java.util.Objects;
 import org.slf4j.Logger;
@@ -26,14 +26,14 @@ class UnmeteredTurnListener {
   private static final String CONSUMER = "billing-unmetered-turn";
 
   private final UnmeteredTurnService unmeteredTurnService;
-  private final MessageDedupService messageDedupService;
+  private final MessageDedup messageDedupService;
 
   UnmeteredTurnListener(
-      UnmeteredTurnService unmeteredTurnService, MessageDedupService messageDedupService) {
+      UnmeteredTurnService unmeteredTurnService, MessageDedup messageDedupService) {
     this.unmeteredTurnService =
         Objects.requireNonNull(unmeteredTurnService, "UnmeteredTurnService cannot be null");
     this.messageDedupService =
-        Objects.requireNonNull(messageDedupService, "MessageDedupService cannot be null");
+        Objects.requireNonNull(messageDedupService, "MessageDedup cannot be null");
   }
 
   @RabbitListener(queues = "#{unmeteredTurnQueue.name}")

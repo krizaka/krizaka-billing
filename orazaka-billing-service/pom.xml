@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>com.orazaka</groupId>
+        <groupId>com.krizaka.orazaka</groupId>
         <artifactId>orazaka-billing</artifactId>
         <version>1.0.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
@@ -16,9 +16,19 @@
     <description>Billing service — credit ledger, hold/settle authorisation, versioned pricebook and entitlements over its own database (ADR-033)</description>
 
     <dependencies>
+        <!-- Krizaka platform kit: idempotent message consumption (claim / release). -->
+        <dependency>
+            <groupId>com.krizaka</groupId>
+            <artifactId>krizaka-messaging</artifactId>
+        </dependency>
+        <!-- Krizaka platform kit: session-JWT security baseline and service-to-service tokens. -->
+        <dependency>
+            <groupId>com.krizaka</groupId>
+            <artifactId>krizaka-security</artifactId>
+        </dependency>
         <!-- The Tier-1 contract this service serves (ports + DTOs, zero impl deps) -->
         <dependency>
-            <groupId>com.orazaka</groupId>
+            <groupId>com.krizaka.orazaka</groupId>
             <artifactId>orazaka-billing-api</artifactId>
         </dependency>
 
@@ -101,7 +111,7 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.orazaka</groupId>
+            <groupId>com.krizaka.orazaka</groupId>
             <artifactId>orazaka-test-support</artifactId>
         </dependency>
         <dependency>

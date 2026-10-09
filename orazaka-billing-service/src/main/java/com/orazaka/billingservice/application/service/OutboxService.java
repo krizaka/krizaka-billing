@@ -1,6 +1,8 @@
 package com.orazaka.billingservice.application.service;
 
-import com.orazaka.billingservice.domain.model.PendingOutboxEvent;
+import com.krizaka.messaging.outbox.OutboxMessage;
+import com.krizaka.messaging.outbox.OutboxStore;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
@@ -12,7 +14,9 @@ import tools.jackson.databind.ObjectMapper;
 
 /**
  * Transactional outbox (AGENTS.md §6): domain events are appended in the <em>same</em> transaction
- * as the state change that produced them, and a relay publishes them afterwards.
+ * as the state change that produced them, and the krizaka-messaging relay publishes them afterwards
+ * — this class is the billing context's {@link OutboxStore}: it owns the {@code billing_outbox}
+ * table, its claim ({@code FOR UPDATE SKIP LOCKED}) and its back-off.
  *
  * <p>This is what makes "the ledger authorises, Lago invoices" survivable. A direct publish inside
  * the settle transaction would either lose the event when the broker blinks or roll back a debit
@@ -23,7 +27,7 @@ import tools.jackson.databind.ObjectMapper;
  * downstream sees a stable identity across redeliveries.
  */
 @Service
-public class OutboxService {
+public class OutboxService implements OutboxStore {
 
   private static final String EVENTS_EXCHANGE = "orazaka.events";
 
@@ -72,18 +76,19 @@ public class OutboxService {
    * @return the claimed events, oldest first so ordering per aggregate is preserved
    */
   @Transactional
-  public List<PendingOutboxEvent> lockPendingBatch(int batchSize) {
+  @Override
+  public List<OutboxMessage> lockPendingBatch(int batchSize) {
     return jdbcTemplate.query(
         "SELECT id, exchange, routing_key, message_id, payload::text, attempts"
             + " FROM billing_outbox WHERE published_at IS NULL AND next_attempt_at <= now()"
             + " ORDER BY created_at LIMIT ? FOR UPDATE SKIP LOCKED",
         (rs, rowNum) ->
-            new PendingOutboxEvent(
+            new OutboxMessage(
                 rs.getObject("id", UUID.class),
                 rs.getString("exchange"),
                 rs.getString("routing_key"),
-                rs.getObject("message_id", UUID.class),
-                rs.getString("payload"),
+                rs.getObject("message_id", UUID.class).toString(),
+                rs.getString("payload").getBytes(StandardCharsets.UTF_8),
                 rs.getInt("attempts")),
         batchSize);
   }
@@ -93,6 +98,7 @@ public class OutboxService {
    *
    * @param id the outbox row
    */
+  @Override
   public void markPublished(UUID id) {
     jdbcTemplate.update("UPDATE billing_outbox SET published_at = now() WHERE id = ?", id);
   }
@@ -106,6 +112,7 @@ public class OutboxService {
    * @param id the outbox row
    * @param attempts how many attempts had already been made
    */
+  @Override
   public void recordFailure(UUID id, int attempts) {
     long backoffSeconds =
         Math.min(1L << Math.min(attempts, MAX_BACKOFF_SHIFT), MAX_BACKOFF_SECONDS);
@@ -125,7 +132,8 @@ public class OutboxService {
    * @param before the cutoff
    * @return how many rows were purged
    */
-  public int purgePublishedBefore(Instant before) {
+  @Override
+  public long purgePublishedBefore(Instant before) {
     return jdbcTemplate.update(
         "DELETE FROM billing_outbox WHERE published_at IS NOT NULL AND published_at < ?",
         java.sql.Timestamp.from(before));
