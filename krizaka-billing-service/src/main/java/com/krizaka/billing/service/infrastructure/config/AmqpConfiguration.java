@@ -1,5 +1,6 @@
 package com.krizaka.billing.service.infrastructure.config;
 
+import com.krizaka.messaging.topology.MessagingExchanges;
 import java.util.Map;
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
@@ -12,9 +13,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * RabbitMQ topology for the billing service (AGENTS.md §6): its own {@code orazaka.events.billing}
- * queue bound to the terminal job outcomes on the shared {@code orazaka.events} topic exchange,
- * dead-lettering through {@code orazaka.dlx}.
+ * RabbitMQ topology for the billing service: its own {@code krizaka.billing.settlements} queue
+ * bound to the terminal job outcomes on the platform's events topic exchange, dead-lettering
+ * through the dead-letter exchange.
  *
  * <p>Billing is a <em>second</em> consumer of those events, not a replacement — a topic exchange
  * fans out, so the SSE relay keeps receiving them unchanged. Exchange declarations are idempotent
@@ -28,14 +29,25 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class AmqpConfiguration {
 
+  private final MessagingExchanges exchanges;
+
+  /**
+   * The topology on the platform's exchanges.
+   *
+   * @param exchanges the events and dead-letter exchanges the hosting platform names
+   */
+  public AmqpConfiguration(MessagingExchanges exchanges) {
+    this.exchanges = exchanges;
+  }
+
   @Bean
   public TopicExchange eventsExchange() {
-    return new TopicExchange(AmqpConstants.EVENTS_EXCHANGE, true, false);
+    return new TopicExchange(exchanges.events(), true, false);
   }
 
   @Bean
   public DirectExchange deadLetterExchange() {
-    return new DirectExchange(AmqpConstants.DLX_EXCHANGE, true, false);
+    return new DirectExchange(exchanges.deadLetter(), true, false);
   }
 
   @Bean
@@ -46,8 +58,10 @@ public class AmqpConfiguration {
         false,
         false,
         Map.of(
-            "x-dead-letter-exchange", AmqpConstants.DLX_EXCHANGE,
-            "x-dead-letter-routing-key", AmqpConstants.SETTLEMENT_QUEUE));
+            "x-dead-letter-exchange",
+            exchanges.deadLetter(),
+            "x-dead-letter-routing-key",
+            AmqpConstants.SETTLEMENT_QUEUE));
   }
 
   @Bean
@@ -82,8 +96,10 @@ public class AmqpConfiguration {
         false,
         false,
         Map.of(
-            "x-dead-letter-exchange", AmqpConstants.DLX_EXCHANGE,
-            "x-dead-letter-routing-key", AmqpConstants.UNMETERED_QUEUE));
+            "x-dead-letter-exchange",
+            exchanges.deadLetter(),
+            "x-dead-letter-routing-key",
+            AmqpConstants.UNMETERED_QUEUE));
   }
 
   @Bean

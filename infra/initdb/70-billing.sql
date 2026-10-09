@@ -9,7 +9,7 @@
 -- actor_id is an OPAQUE ActorId copied by value from the identity context — no
 -- inbound or outbound cross-context FK (SEAM-001); rate_limit_tier_key is an
 -- opaque reference into identity's tier catalogue, likewise never an FK.
--- These tables live in their OWN database (orazaka_billing_db) under the
+-- These tables live in their OWN database (krizaka_billing_db) under the
 -- service's own role, created here.
 -- ============================================================================
 
@@ -18,10 +18,10 @@
 -- BILLING_DB_PASSWORD once the container is healthy. A role created without a
 -- password cannot authenticate, so a skipped step fails closed rather than leaving a
 -- guessable one — which is what the committed literal was (ADR-035, audit #5).
-CREATE ROLE orazaka_billing LOGIN;
-CREATE DATABASE orazaka_billing_db OWNER orazaka_billing;
-\c orazaka_billing_db
-SET ROLE orazaka_billing;
+CREATE ROLE krizaka_billing LOGIN;
+CREATE DATABASE krizaka_billing_db OWNER krizaka_billing;
+\c krizaka_billing_db
+SET ROLE krizaka_billing;
 
 -- ── Commercial plane (design §5.1) ──────────────────────────────────────────
 -- A plan is a ROW. Adding "ultimate+" or "studio" is an admin action, never a deploy.
@@ -345,7 +345,7 @@ INSERT INTO billing_runtime_config (config_key, config_value, value_type, descri
 ON CONFLICT (config_key) DO NOTHING;
 
 -- Plans (design §8). Prices and grants are ADMIN DATA — editable live, never in yaml.
--- rate_limit_tier_key is an opaque reference into identity's orazaka_rate_limits.
+-- rate_limit_tier_key is an opaque reference into identity's rate_limits.
 -- external_plan_code stays NULL: the Lago seam (phase 4) is gated on leaving the local phase.
 INSERT INTO billing_plan (plan_key, label, tier_rank, monthly_credit_grant, price_cents, currency, rate_limit_tier_key, is_public, is_active) VALUES
 ('free',     'Free',     1,   500,    0, 'EUR', 'free',       TRUE, TRUE),

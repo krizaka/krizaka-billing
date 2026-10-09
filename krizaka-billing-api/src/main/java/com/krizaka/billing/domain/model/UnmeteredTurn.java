@@ -29,8 +29,8 @@ public record UnmeteredTurn(
     Instant occurredAt) {
 
   /**
-   * Routing key on {@code orazaka.events} — {@code evt.{aggregate}.{type}} (AGENTS.md §6). A wire
-   * key two contexts must agree on, which is why it lives in the contract.
+   * Routing key on the events exchange — {@code evt.{aggregate}.{type}} (AGENTS.md §6). A wire key
+   * two contexts must agree on, which is why it lives in the contract.
    */
   public static final String ROUTING_KEY = "evt.turn.unmetered";
 

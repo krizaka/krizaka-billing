@@ -38,9 +38,9 @@ import org.testcontainers.utility.MountableFile;
  */
 class UsageAnalyticsIT {
 
-  private static final String BILLING_DB = "orazaka_billing_db";
-  private static final String BILLING_ROLE = "orazaka_billing";
-  private static final String BILLING_PASSWORD = "orazaka_billing_pass";
+  private static final String BILLING_DB = "krizaka_billing_db";
+  private static final String BILLING_ROLE = "krizaka_billing";
+  private static final String BILLING_PASSWORD = "krizaka_billing_pass";
   private static final Duration WINDOW = Duration.ofDays(30);
 
   @SuppressWarnings("resource")

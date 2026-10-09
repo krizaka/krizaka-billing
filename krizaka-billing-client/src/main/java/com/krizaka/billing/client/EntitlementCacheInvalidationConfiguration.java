@@ -27,7 +27,6 @@ import org.springframework.context.annotation.Configuration;
 @ConditionalOnClass(RabbitTemplate.class)
 class EntitlementCacheInvalidationConfiguration {
 
-  private static final String EVENTS_EXCHANGE = "orazaka.events";
   private static final String SUBSCRIPTION_BINDING = "evt.subscription.*";
 
   /**
@@ -40,11 +39,18 @@ class EntitlementCacheInvalidationConfiguration {
    */
   private static final String PACK_BINDING = "evt.pack.*";
 
-  private static final String QUEUE_PREFIX = "orazaka.events.entitlement-cache.";
+  private static final String QUEUE_PREFIX = "krizaka.billing.entitlement-cache.";
 
+  /**
+   * The platform's events exchange, where billing announces subscription and pack changes.
+   *
+   * @param name {@code krizaka.messaging.exchanges.events}, {@code krizaka.events} by default
+   * @return the exchange the invalidation queue binds to
+   */
   @Bean
-  TopicExchange billingEventsExchange() {
-    return new TopicExchange(EVENTS_EXCHANGE, true, false);
+  TopicExchange billingEventsExchange(
+      @Value("${krizaka.messaging.exchanges.events:krizaka.events}") String name) {
+    return new TopicExchange(name, true, false);
   }
 
   /**
@@ -59,7 +65,7 @@ class EntitlementCacheInvalidationConfiguration {
    */
   @Bean
   Queue entitlementInvalidationQueue(
-      @Value("${spring.application.name:orazaka}") String applicationName) {
+      @Value("${spring.application.name:application}") String applicationName) {
     // Durable + auto-delete, not transient + auto-delete: RabbitMQ 4 removed
     // `transient_nonexcl_queues` and refuses the connection outright, so a non-durable
     // non-exclusive queue takes the whole host down at startup. Auto-delete still carries the

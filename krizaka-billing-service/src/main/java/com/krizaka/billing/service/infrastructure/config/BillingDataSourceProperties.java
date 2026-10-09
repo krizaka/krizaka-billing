@@ -9,7 +9,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * the shared local {@code .env} — which exports {@code SPRING_DATASOURCE_*} for the app database —
  * from hijacking this service's connection through Spring's env-var precedence over yaml.
  *
- * @param url the JDBC URL of {@code orazaka_billing_db}
+ * @param url the JDBC URL of {@code krizaka_billing_db}
  * @param username the service's own database role
  * @param password the role's password
  */

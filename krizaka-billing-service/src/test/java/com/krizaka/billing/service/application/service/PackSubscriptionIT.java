@@ -10,6 +10,7 @@ import com.krizaka.billing.service.application.service.PackSubscriptionService.P
 import com.krizaka.billing.service.domain.model.CatalogPack;
 import com.krizaka.billing.service.domain.model.Entitlement;
 import com.krizaka.billing.service.domain.model.SubscriptionStatus;
+import com.krizaka.messaging.topology.MessagingExchanges;
 import com.krizaka.test.container.ServiceRoles;
 import com.krizaka.test.sql.InitDb;
 import com.zaxxer.hikari.HikariDataSource;
@@ -47,9 +48,9 @@ import tools.jackson.databind.ObjectMapper;
  */
 class PackSubscriptionIT {
 
-  private static final String BILLING_DB = "orazaka_billing_db";
-  private static final String BILLING_ROLE = "orazaka_billing";
-  private static final String BILLING_PASSWORD = "orazaka_billing_pass";
+  private static final String BILLING_DB = "krizaka_billing_db";
+  private static final String BILLING_ROLE = "krizaka_billing";
+  private static final String BILLING_PASSWORD = "krizaka_billing_pass";
   private static final String ADMIN = "550e8400-e29b-41d4-a716-446655440001";
 
   @SuppressWarnings("resource")
@@ -324,7 +325,7 @@ class PackSubscriptionIT {
 
     @Bean
     OutboxService outboxService(JdbcTemplate jdbcTemplate) {
-      return new OutboxService(jdbcTemplate, new ObjectMapper());
+      return new OutboxService(jdbcTemplate, new ObjectMapper(), MessagingExchanges.defaults());
     }
 
     @Bean

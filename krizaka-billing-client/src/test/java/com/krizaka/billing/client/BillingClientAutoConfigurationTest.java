@@ -193,7 +193,7 @@ class BillingClientAutoConfigurationTest {
               // correct and the rest stale — worse than no invalidation, because it is
               // intermittent.
               assertThat(queue.getName())
-                  .isEqualTo("orazaka.events.entitlement-cache.orazaka-conversation-service");
+                  .isEqualTo("krizaka.billing.entitlement-cache.orazaka-conversation-service");
               assertThat(queue.isAutoDelete()).isTrue();
             });
   }

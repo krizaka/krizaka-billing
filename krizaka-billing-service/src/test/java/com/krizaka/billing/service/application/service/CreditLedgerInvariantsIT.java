@@ -14,6 +14,7 @@ import com.krizaka.billing.domain.model.CreditHoldResponse;
 import com.krizaka.billing.domain.model.MeteredStep;
 import com.krizaka.billing.domain.model.SettleCreditCommand;
 import com.krizaka.billing.service.domain.model.WalletSnapshot;
+import com.krizaka.messaging.topology.MessagingExchanges;
 import com.krizaka.test.container.ServiceRoles;
 import com.krizaka.test.sql.InitDb;
 import com.zaxxer.hikari.HikariDataSource;
@@ -64,9 +65,9 @@ import tools.jackson.databind.ObjectMapper;
  */
 class CreditLedgerInvariantsIT {
 
-  private static final String BILLING_DB = "orazaka_billing_db";
-  private static final String BILLING_ROLE = "orazaka_billing";
-  private static final String BILLING_PASSWORD = "orazaka_billing_pass";
+  private static final String BILLING_DB = "krizaka_billing_db";
+  private static final String BILLING_ROLE = "krizaka_billing";
+  private static final String BILLING_PASSWORD = "krizaka_billing_pass";
 
   @SuppressWarnings("resource")
   private static final PostgreSQLContainer<?> POSTGRES =
@@ -625,7 +626,7 @@ class CreditLedgerInvariantsIT {
 
     @Bean
     OutboxService outboxService(JdbcTemplate jdbcTemplate) {
-      return new OutboxService(jdbcTemplate, new ObjectMapper());
+      return new OutboxService(jdbcTemplate, new ObjectMapper(), MessagingExchanges.defaults());
     }
 
     @Bean

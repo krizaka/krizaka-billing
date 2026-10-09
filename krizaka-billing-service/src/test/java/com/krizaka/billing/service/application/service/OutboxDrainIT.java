@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.krizaka.messaging.outbox.OutboxMessage;
+import com.krizaka.messaging.topology.MessagingExchanges;
 import com.krizaka.test.container.ServiceRoles;
 import com.krizaka.test.sql.InitDb;
 import com.zaxxer.hikari.HikariDataSource;
@@ -42,9 +43,9 @@ import tools.jackson.databind.ObjectMapper;
  */
 class OutboxDrainIT {
 
-  private static final String BILLING_DB = "orazaka_billing_db";
-  private static final String BILLING_ROLE = "orazaka_billing";
-  private static final String BILLING_PASSWORD = "orazaka_billing_pass";
+  private static final String BILLING_DB = "krizaka_billing_db";
+  private static final String BILLING_ROLE = "krizaka_billing";
+  private static final String BILLING_PASSWORD = "krizaka_billing_pass";
 
   @SuppressWarnings("resource")
   private static final PostgreSQLContainer<?> POSTGRES =
@@ -113,7 +114,7 @@ class OutboxDrainIT {
 
     List<OutboxMessage> first = mine(outboxService.lockPendingBatch(100));
     assertEquals(1, first.size());
-    assertEquals("orazaka.events", first.get(0).exchange());
+    assertEquals("krizaka.events", first.get(0).exchange());
     assertEquals("evt.subscription.changed", first.get(0).routingKey());
 
     outboxService.markPublished(first.get(0).id());
@@ -238,7 +239,7 @@ class OutboxDrainIT {
 
     @Bean
     OutboxService outboxService(JdbcTemplate jdbcTemplate) {
-      return new OutboxService(jdbcTemplate, new ObjectMapper());
+      return new OutboxService(jdbcTemplate, new ObjectMapper(), MessagingExchanges.defaults());
     }
   }
 }

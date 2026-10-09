@@ -1,9 +1,8 @@
 package com.krizaka.billing.service.infrastructure.config;
 
 /**
- * RabbitMQ topology constants for the billing service (AGENTS.md §6). Contract copy — the topic
- * exchanges are shared, stable contracts; this service owns only its {@code orazaka.events.billing}
- * queue and its {@code <queue>.dlq}.
+ * The queues the billing service owns and what each one binds. The exchanges belong to the platform
+ * the service runs on ({@code krizaka.messaging.exchanges}, krizaka-messaging).
  */
 final class AmqpConstants {
 
@@ -11,14 +10,9 @@ final class AmqpConstants {
 
   /**
    * Terminal job outcomes are <b>events</b>, not commands: the executor announces what happened on
-   * {@code orazaka.events}, where the SSE relay already listens. {@code orazaka.jobs} carries work
-   * requests in the other direction and never sees a {@code job.{id}.done}.
+   * the events exchange. A completion settles the hold, a failure releases it.
    */
-  static final String EVENTS_EXCHANGE = "orazaka.events";
-
-  static final String DLX_EXCHANGE = "orazaka.dlx";
-
-  static final String SETTLEMENT_QUEUE = "orazaka.events.billing";
+  static final String SETTLEMENT_QUEUE = "krizaka.billing.settlements";
 
   /** Terminal job outcomes only: a completion settles the hold, a failure releases it. */
   static final String DONE_BINDING = "job.*.done";
@@ -30,7 +24,7 @@ final class AmqpConstants {
    * Turns served without a hold while billing was unreachable (ADR-064). A queue of its own: a
    * different payload from a job outcome, and a record that must outlive a settlement backlog.
    */
-  static final String UNMETERED_QUEUE = "orazaka.events.billing.unmetered";
+  static final String UNMETERED_QUEUE = "krizaka.billing.unmetered";
 
   /** Contract copy of {@code UnmeteredTurn.ROUTING_KEY}. */
   static final String UNMETERED_BINDING = "evt.turn.unmetered";

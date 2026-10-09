@@ -2,6 +2,7 @@ package com.krizaka.billing.service.application.service;
 
 import com.krizaka.messaging.outbox.OutboxMessage;
 import com.krizaka.messaging.outbox.OutboxStore;
+import com.krizaka.messaging.topology.MessagingExchanges;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.List;
@@ -29,8 +30,6 @@ import tools.jackson.databind.ObjectMapper;
 @Service
 public class OutboxService implements OutboxStore {
 
-  private static final String EVENTS_EXCHANGE = "orazaka.events";
-
   /** Backoff doubles per failure, then holds — see {@link #recordFailure}. */
   private static final int MAX_BACKOFF_SHIFT = 9;
 
@@ -38,10 +37,14 @@ public class OutboxService implements OutboxStore {
 
   private final JdbcTemplate jdbcTemplate;
   private final ObjectMapper objectMapper;
+  private final String eventsExchange;
 
-  public OutboxService(JdbcTemplate jdbcTemplate, ObjectMapper objectMapper) {
+  public OutboxService(
+      JdbcTemplate jdbcTemplate, ObjectMapper objectMapper, MessagingExchanges exchanges) {
     this.jdbcTemplate = Objects.requireNonNull(jdbcTemplate, "JdbcTemplate cannot be null");
     this.objectMapper = Objects.requireNonNull(objectMapper, "ObjectMapper cannot be null");
+    this.eventsExchange =
+        Objects.requireNonNull(exchanges, "MessagingExchanges cannot be null").events();
   }
 
   /**
@@ -49,7 +52,7 @@ public class OutboxService implements OutboxStore {
    *
    * @param aggregateType the aggregate that changed, e.g. {@code WALLET}
    * @param aggregateId that aggregate's identifier
-   * @param routingKey the {@code orazaka.events} routing key, e.g. {@code evt.usage.recorded}
+   * @param routingKey the the events exchange routing key, e.g. {@code evt.usage.recorded}
    * @param payload the event body, serialised to JSONB
    */
   public void append(String aggregateType, String aggregateId, String routingKey, Object payload) {
@@ -59,7 +62,7 @@ public class OutboxService implements OutboxStore {
         UUID.randomUUID(),
         aggregateType,
         aggregateId,
-        EVENTS_EXCHANGE,
+        eventsExchange,
         routingKey,
         UUID.randomUUID(),
         objectMapper.writeValueAsString(payload));

@@ -27,9 +27,9 @@ import org.testcontainers.utility.MountableFile;
  */
 class UnmeteredTurnServiceIT {
 
-  private static final String BILLING_DB = "orazaka_billing_db";
-  private static final String BILLING_ROLE = "orazaka_billing";
-  private static final String BILLING_PASSWORD = "orazaka_billing_pass";
+  private static final String BILLING_DB = "krizaka_billing_db";
+  private static final String BILLING_ROLE = "krizaka_billing";
+  private static final String BILLING_PASSWORD = "krizaka_billing_pass";
 
   @SuppressWarnings("resource")
   private static final PostgreSQLContainer<?> POSTGRES =

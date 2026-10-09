@@ -44,9 +44,9 @@ import tools.jackson.databind.ObjectMapper;
  */
 class PricebookPublicationIT {
 
-  private static final String BILLING_DB = "orazaka_billing_db";
-  private static final String BILLING_ROLE = "orazaka_billing";
-  private static final String BILLING_PASSWORD = "orazaka_billing_pass";
+  private static final String BILLING_DB = "krizaka_billing_db";
+  private static final String BILLING_ROLE = "krizaka_billing";
+  private static final String BILLING_PASSWORD = "krizaka_billing_pass";
   private static final String ADMIN = "550e8400-e29b-41d4-a716-446655440001";
 
   @SuppressWarnings("resource")

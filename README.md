@@ -75,8 +75,8 @@ krizaka:
 
 | Property | Environment | Default |
 |:---|:---|:---|
-| `krizaka.billing-service.datasource.url` | `BILLING_DB_URL` | `jdbc:postgresql://localhost:5432/orazaka_billing_db` |
-| `krizaka.billing-service.datasource.username` / `.password` | `BILLING_DB_USERNAME` / `BILLING_DB_PASSWORD` | `orazaka_billing` / — |
+| `krizaka.billing-service.datasource.url` | `BILLING_DB_URL` | `jdbc:postgresql://localhost:5432/krizaka_billing_db` |
+| `krizaka.billing-service.datasource.username` / `.password` | `BILLING_DB_USERNAME` / `BILLING_DB_PASSWORD` | `krizaka_billing` / — |
 | `krizaka.billing-service.sweeper.interval` | `BILLING_SWEEPER_INTERVAL` | `60000` ms |
 | `krizaka.security.jwt.secret` | `IDENTITY_JWT_SECRET` | — (≥ 32 characters) |
 | `server.port` | `BILLING_PORT` | `8095` |
@@ -85,9 +85,9 @@ PostgreSQL and RabbitMQ are required; the database, its role (created without a 
 the catalogue come from [`infra/initdb/70-billing.sql`](infra/initdb/70-billing.sql). Prices and the hold TTL are rows,
 not configuration.
 
-> **Wire names.** The database (`orazaka_billing_db`), its tables and the events exchange keep the names of the platform
-> this service was extracted from, so existing deployments keep their data and their consumers. Renaming them is a
-> data migration, planned separately.
+> **Messaging.** Billing listens to job outcomes and publishes its events on the exchanges of the platform it runs on:
+> `krizaka.messaging.exchanges.events` / `.dead-letter` (`EVENTS_EXCHANGE` / `DLX_EXCHANGE`, defaults `krizaka.events` /
+> `krizaka.dlx`). It owns the queues `krizaka.billing.settlements` and `krizaka.billing.unmetered`.
 
 ## Build
 

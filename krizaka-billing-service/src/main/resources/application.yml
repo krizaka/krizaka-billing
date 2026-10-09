@@ -5,7 +5,7 @@
 # over M2M-authenticated HTTP and by the admin console through the edge/BFF.
 #
 # NOTHING COMMERCIAL LIVES HERE. Plans, prices, entitlements, credit rates and the
-# enforcement mode are ROWS in orazaka_billing_db, admin-editable live (AGENTS.md
+# enforcement mode are ROWS in krizaka_billing_db, admin-editable live (AGENTS.md
 # §4, design §12/§13). This file carries wiring only: ports, timeouts, the Lago
 # seam and the datasource.
 #
@@ -91,14 +91,19 @@ orazaka:
 krizaka:
   billing-service:
     datasource:
-      url: ${BILLING_DB_URL:jdbc:postgresql://localhost:5432/orazaka_billing_db}
-      username: ${BILLING_DB_USERNAME:orazaka_billing}
+      url: ${BILLING_DB_URL:jdbc:postgresql://localhost:5432/krizaka_billing_db}
+      username: ${BILLING_DB_USERNAME:krizaka_billing}
       password: ${BILLING_DB_PASSWORD}
     sweeper:
       # How often ACTIVE holds are checked against expires_at. The TTL itself is a DB row
       # (billing.hold.ttl-seconds) — this is only the poll interval, which is bootstrap wiring.
       interval: ${BILLING_SWEEPER_INTERVAL:60000}
   messaging:
+    exchanges:
+      # The bus this service runs on belongs to the platform that hosts it: set EVENTS_EXCHANGE and
+      # DLX_EXCHANGE to join an existing one; standalone it creates and uses its own.
+      events: ${EVENTS_EXCHANGE:krizaka.events}
+      dead-letter: ${DLX_EXCHANGE:krizaka.dlx}
     dedup:
       # Claims are rows in this context's processed_messages table: durable, shared by every
       # instance, arbitrated by its primary key.
