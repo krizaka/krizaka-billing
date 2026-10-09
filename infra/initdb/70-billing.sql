@@ -1,7 +1,7 @@
 -- ============================================================================
 -- ORAZAKA — Local DB bootstrap · 70 — BILLING & CREDITS CONTEXT
 -- ----------------------------------------------------------------------------
--- Owner: Billing service (orazaka-billing-service :8095 — ADR-033).
+-- Owner: Billing service (krizaka-billing-service :8095 — ADR-033).
 -- Everything "what may this actor buy, and how much volume is left": plans,
 -- entitlements, packs métier and who owns them, subscriptions, the credit ledger,
 -- holds, the versioned pricebook, metered usage, and this service's own runtime

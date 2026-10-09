@@ -1,39 +1,95 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+         child.project.url.inherit.append.path="false">
     <modelVersion>4.0.0</modelVersion>
 
-    <!-- The relativePath resolves inside the Orazaka workspace (krizaka/orazaka); a standalone
-         clone falls back to the orazaka-parent published on GitHub Packages. -->
+    <!-- Built on the Krizaka build (krizaka/krizaka-build): Maven Central metadata, Java 21
+         conventions and the signed release. Inside a workspace that clones krizaka-build next to
+         this repository the relativePath resolves it from source; anywhere else it comes from
+         Maven Central. -->
     <parent>
-        <groupId>com.krizaka.orazaka</groupId>
-        <artifactId>orazaka-parent</artifactId>
-        <version>1.0.0-SNAPSHOT</version>
-        <relativePath>../../../orazaka-libs/orazaka-build/orazaka-parent/pom.xml</relativePath>
+        <groupId>com.krizaka</groupId>
+        <artifactId>krizaka-parent</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+        <relativePath>../krizaka-build/krizaka-parent/pom.xml</relativePath>
     </parent>
 
-    <artifactId>orazaka-billing</artifactId>
+    <artifactId>krizaka-billing</artifactId>
     <packaging>pom</packaging>
-    <name>orazaka-billing</name>
+    <name>Krizaka Billing</name>
     <description>Credits, wallets, plans, subscriptions, pricebook and metering (hold → settle → release) as a reusable billing service, with its contract (billing-api) and a typed HTTP client (billing-client).</description>
+    <url>https://github.com/krizaka/krizaka-billing</url>
 
-    <url>https://github.com/krizaka/orazaka-billing</url>
-
-    <scm>
-        <url>https://github.com/krizaka/orazaka-billing</url>
-        <connection>scm:git:https://github.com/krizaka/orazaka-billing.git</connection>
-        <developerConnection>scm:git:git@github.com:krizaka/orazaka-billing.git</developerConnection>
+    <scm child.scm.connection.inherit.append.path="false"
+         child.scm.developerConnection.inherit.append.path="false"
+         child.scm.url.inherit.append.path="false">
+        <url>https://github.com/krizaka/krizaka-billing</url>
+        <connection>scm:git:https://github.com/krizaka/krizaka-billing.git</connection>
+        <developerConnection>scm:git:git@github.com:krizaka/krizaka-billing.git</developerConnection>
+        <tag>HEAD</tag>
     </scm>
 
+    <issueManagement>
+        <system>GitHub Issues</system>
+        <url>https://github.com/krizaka/krizaka-billing/issues</url>
+    </issueManagement>
+
     <properties>
-        <!-- GitHub Packages repository the modules below are published to (orazaka-parent). -->
-        <orazaka.repository>orazaka-billing</orazaka.repository>
+        <archunit.version>1.3.0</archunit.version>
     </properties>
 
     <modules>
-        <module>orazaka-billing-api</module>
-        <module>orazaka-billing-client</module>
-        <module>orazaka-billing-service</module>
+        <module>krizaka-billing-api</module>
+        <module>krizaka-billing-client</module>
+        <module>krizaka-billing-service</module>
     </modules>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring-boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <!-- The other Krizaka artifacts, at this repository's own version. -->
+            <dependency>
+                <groupId>com.krizaka</groupId>
+                <artifactId>krizaka-bom</artifactId>
+                <version>${project.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.tngtech.archunit</groupId>
+                <artifactId>archunit-junit5</artifactId>
+                <version>${archunit.version}</version>
+                <scope>test</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-maven-plugin</artifactId>
+                    <version>${spring-boot.version}</version>
+                    <executions>
+                        <!-- /actuator/info says which build is running. -->
+                        <execution>
+                            <id>build-info</id>
+                            <goals>
+                                <goal>build-info</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
 </project>
