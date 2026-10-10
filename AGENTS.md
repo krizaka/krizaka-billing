@@ -16,6 +16,10 @@
 - **Other services use the contract or the client** — never the service's implementation.
 - **Owns its schema**: `infra/initdb/70-billing.sql`, read by the integration tests through `InitDb.locate`.
 - **Configuration**: `krizaka.billing.*` (client) and `krizaka.billing-service.*` (service).
+- **Services ship as Docker images, never on Maven Central.** Only the libraries (`-api`, `-client`, …) are published; a
+  `*-service` host sets `maven.deploy.skip` and is listed in the root POM's `central-publishing-maven-plugin`
+  `excludeArtifacts` (the plugin stages every module of the reactor otherwise). The `publishable-artifact-size` enforcer
+  rule fails `verify` when a published jar exceeds 5 MB — a runnable (fat) jar never reaches Central.
 
 ## Definition of done
 

@@ -12,7 +12,7 @@
     <parent>
         <groupId>com.krizaka</groupId>
         <artifactId>krizaka-parent</artifactId>
-        <version>0.1.0-SNAPSHOT</version>
+        <version>0.2.0</version>
         <relativePath>../krizaka-build/krizaka-parent/pom.xml</relativePath>
     </parent>
 
@@ -38,6 +38,12 @@
 
     <properties>
         <archunit.version>1.3.0</archunit.version>
+        <!-- What reaches Maven Central: the libraries, never a runnable service. A *-service module
+             sets maven.deploy.skip (the services ship as Docker images, built from source); every
+             other module with sources is published, and its jar must stay under
+             krizaka.publishable.max-size (enforcer, verify phase — a fat jar fails the build). -->
+        <maven.deploy.skip>false</maven.deploy.skip>
+        <krizaka.publishable.max-size>5242880</krizaka.publishable.max-size>
     </properties>
 
     <modules>
@@ -89,7 +95,62 @@
                         </execution>
                     </executions>
                 </plugin>
+                <!-- The Central bundle never carries a service host: central-publishing-maven-plugin
+                     stages every module of the reactor, maven.deploy.skip or not, so the hosts are
+                     excluded by name. They ship as Docker images. -->
+                <plugin>
+                    <groupId>org.sonatype.central</groupId>
+                    <artifactId>central-publishing-maven-plugin</artifactId>
+                    <configuration>
+                        <excludeArtifacts>
+                            <excludeArtifact>krizaka-billing-service</excludeArtifact>
+                        </excludeArtifacts>
+                    </configuration>
+                </plugin>
             </plugins>
         </pluginManagement>
     </build>
+
+    <profiles>
+        <!-- Publishable-artifact guard: a module with Java sources that Maven Central receives
+             (maven.deploy.skip=false) must produce a jar under 5 MB. Active in every module that
+             has src/main/java; the *-service hosts skip it with their deployment. -->
+        <profile>
+            <id>publishable-artifact-size</id>
+            <activation>
+                <file>
+                    <exists>${basedir}/src/main/java</exists>
+                </file>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-enforcer-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>publishable-artifact-size</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>enforce</goal>
+                                </goals>
+                                <configuration>
+                                    <skip>${maven.deploy.skip}</skip>
+                                    <rules>
+                                        <requireFilesSize>
+                                            <maxsize>${krizaka.publishable.max-size}</maxsize>
+                                            <files>
+                                                <file>${project.build.directory}/${project.build.finalName}.jar</file>
+                                            </files>
+                                            <message>A published artifact must stay small: a runnable (fat) jar never goes to Maven Central. Set maven.deploy.skip=true in a service module; it ships as a Docker image.</message>
+                                        </requireFilesSize>
+                                    </rules>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>

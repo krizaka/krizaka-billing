@@ -14,6 +14,11 @@ Every Krizaka JVM artifact is released at the same version.
 
 ### Changed
 
+- Built on `krizaka-parent` and `krizaka-platform-kit` **0.2.0** (released on Maven Central); this repository's
+  version follows the parent (0.2.0, not yet released).
+- The service host is never published to Maven Central: it is excluded from the Central bundle by name
+  (`excludeArtifacts`) and ships as a Docker image; the `publishable-artifact-size` enforcer rule fails `verify` when a
+  published jar exceeds 5 MB.
 - `billing_outbox` gains `headers JSONB NOT NULL DEFAULT '{}'` (`infra/initdb/70-billing.sql`). An existing database
   needs `ALTER TABLE billing_outbox ADD COLUMN IF NOT EXISTS headers JSONB NOT NULL DEFAULT '{}'::jsonb;`.
 
