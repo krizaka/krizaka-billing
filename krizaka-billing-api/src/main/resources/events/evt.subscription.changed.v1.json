@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://krizaka.com/events/evt.subscription.changed.v1.json",
+  "title": "evt.subscription.changed v1",
+  "description": "An actor's plan subscription changed (new plan, plan change, change scheduled at period end). Published by krizaka-billing through its outbox on the platform's events exchange; the body is the bare event, the envelope travels in the kz-* AMQP headers.",
+  "type": "object",
+  "required": [
+    "actorId",
+    "planKey",
+    "status",
+    "occurredAt"
+  ],
+  "properties": {
+    "actorId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "planKey": {
+      "type": "string",
+      "minLength": 1
+    },
+    "status": {
+      "enum": [
+        "TRIALING",
+        "ACTIVE",
+        "PAST_DUE",
+        "CANCELED",
+        "EXPIRED"
+      ]
+    },
+    "periodEnd": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "occurredAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

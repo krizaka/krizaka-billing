@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://krizaka.com/events/evt.pack.canceled.v1.json",
+  "title": "evt.pack.canceled v1",
+  "description": "An actor's capability pack subscription was canceled. Published by krizaka-billing through its outbox on the platform's events exchange; the body is the bare event, the envelope travels in the kz-* AMQP headers.",
+  "type": "object",
+  "required": [
+    "actorId",
+    "packKey",
+    "status",
+    "occurredAt"
+  ],
+  "properties": {
+    "actorId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "packKey": {
+      "type": "string",
+      "minLength": 1
+    },
+    "status": {
+      "enum": [
+        "TRIALING",
+        "ACTIVE",
+        "PAST_DUE",
+        "CANCELED",
+        "EXPIRED"
+      ]
+    },
+    "periodEnd": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "occurredAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

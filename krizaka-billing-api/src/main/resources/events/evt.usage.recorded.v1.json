@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://krizaka.com/events/evt.usage.recorded.v1.json",
+  "title": "evt.usage.recorded v1",
+  "description": "A metered step was settled against a wallet — one event per priced step, the breakdown the ledger keeps. Published by krizaka-billing through its outbox on the platform's events exchange; the body is the bare event, the envelope travels in the kz-* AMQP headers.",
+  "type": "object",
+  "required": [
+    "actorId",
+    "capability",
+    "unit",
+    "quantity",
+    "creditsCharged"
+  ],
+  "properties": {
+    "actorId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "capability": {
+      "type": "string",
+      "minLength": 1
+    },
+    "modelName": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "unit": {
+      "type": "string",
+      "minLength": 1
+    },
+    "quantity": {
+      "type": "number",
+      "minimum": 0
+    },
+    "creditsCharged": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "holdId": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "correlationId": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  }
+}

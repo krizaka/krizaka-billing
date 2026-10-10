@@ -8,6 +8,11 @@ Every Krizaka JVM artifact is released at the same version.
 
 ### Added
 
+- Event contracts: `krizaka-billing-api` publishes the JSON Schema (draft 2020-12) of each billing event —
+  `evt.turn.unmetered`, `evt.credit.granted`, `evt.usage.recorded`, `evt.wallet.low-balance`,
+  `evt.subscription.changed|canceled|renewed`, `evt.pack.subscribed|canceled` (`events/<routing-key>.v1.json`).
+  `BillingEventsContractTest` and `UnmeteredTurnContractTest` check the producers, `SubscriptionEventContractTest` the
+  client's own copy (`krizaka-test-support` `EventContractTest`).
 - `OutboxService` implements `krizaka-messaging`'s `OutboxStore.append(NewOutboxMessage)`: a row written by an
   `EventPublisher` keeps its `messageId` and envelope headers, and the relay publishes them as AMQP headers
   (`OutboxDrainIT`, real `70-billing.sql`).

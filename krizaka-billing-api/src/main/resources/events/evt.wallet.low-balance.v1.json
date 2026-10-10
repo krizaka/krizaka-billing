@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://krizaka.com/events/evt.wallet.low-balance.v1.json",
+  "title": "evt.wallet.low-balance v1",
+  "description": "A debit took a wallet below its low-balance threshold (a percentage of the actor's monthly grant) — emitted on the crossing only. Published by krizaka-billing through its outbox on the platform's events exchange; the body is the bare event, the envelope travels in the kz-* AMQP headers.",
+  "type": "object",
+  "required": [
+    "actorId",
+    "available",
+    "thresholdPercent",
+    "occurredAt"
+  ],
+  "properties": {
+    "actorId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "available": {
+      "type": "integer"
+    },
+    "thresholdPercent": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "occurredAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}
