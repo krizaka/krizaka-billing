@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://krizaka.com/events/evt.credit.granted.v1.json",
+  "title": "evt.credit.granted v1",
+  "description": "Credits were added to a wallet (a grant, a purchase or an admin adjustment). Published by krizaka-billing through its outbox on the platform's events exchange; the body is the bare event, the envelope travels in the kz-* AMQP headers.",
+  "type": "object",
+  "required": [
+    "actorId",
+    "bucket",
+    "amount",
+    "balanceAfter",
+    "occurredAt"
+  ],
+  "properties": {
+    "actorId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "bucket": {
+      "enum": [
+        "GRANTED",
+        "PURCHASED"
+      ]
+    },
+    "amount": {
+      "type": "integer"
+    },
+    "balanceAfter": {
+      "type": "integer"
+    },
+    "reason": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "createdBy": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "occurredAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

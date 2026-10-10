@@ -39,6 +39,15 @@ deduplication: a redelivered settlement is processed once. Billing events leave 
 (relayed by `krizaka-messaging`); it also implements `OutboxStore.append`, so an `EventPublisher` can write to it with
 its `messageId` and envelope headers (`billing_outbox.headers jsonb`), published as stored.
 
+## Events
+
+Billing publishes through its outbox on the platform's events exchange (`krizaka.messaging.exchanges.events`) and
+consumes `evt.turn.unmetered`; the body is the bare event, the envelope travels in the `kz-*` AMQP headers. Each event has
+a JSON Schema (draft 2020-12) in `krizaka-billing-api`, at `events/<routing-key>.v1.json`:
+`evt.turn.unmetered`, `evt.credit.granted`, `evt.usage.recorded`, `evt.wallet.low-balance`,
+`evt.subscription.changed`, `evt.subscription.canceled`, `evt.subscription.renewed`, `evt.pack.subscribed`,
+`evt.pack.canceled`. A consumer checks its own copy against them with `krizaka-test-support`'s `EventContractTest`.
+
 ## Modules
 
 | Artifact | Published | Role |

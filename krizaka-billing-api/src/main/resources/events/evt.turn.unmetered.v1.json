@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://krizaka.com/events/evt.turn.unmetered.v1.json",
+  "title": "evt.turn.unmetered v1",
+  "description": "A turn ran without being metered (billing unreachable or disabled at the time). Published by a service that calls billing — through its own outbox — and consumed by krizaka-billing, which reconciles it.",
+  "type": "object",
+  "required": [
+    "actorId",
+    "capability",
+    "correlationId",
+    "reason",
+    "occurredAt"
+  ],
+  "properties": {
+    "actorId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "capability": {
+      "enum": [
+        "CHAT",
+        "IMAGE",
+        "AUDIO",
+        "VIDEO",
+        "AGENT"
+      ]
+    },
+    "correlationId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "reason": {
+      "type": "string",
+      "minLength": 1
+    },
+    "occurredAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}
