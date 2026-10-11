@@ -88,7 +88,7 @@ public class PlanCatalogService {
    * make removing a capability impossible without a second endpoint, and a half-applied matrix is a
    * plan that grants something nobody chose.
    *
-   * @param plan the plan to write
+   * @param requested the plan to write; without a currency it is priced in {@code billing.currency}
    * @param changedBy the admin's actor id
    * @return the plan as stored
    */
