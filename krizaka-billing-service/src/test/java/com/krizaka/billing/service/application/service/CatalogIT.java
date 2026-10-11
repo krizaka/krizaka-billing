@@ -62,6 +62,7 @@ class CatalogIT {
   private static JdbcTemplate jdbcTemplate;
   private static PlanCatalogService planCatalog;
   private static PackPricingService packPricing;
+  private static BillingConfigurationService configuration;
 
   private String planKey;
   private String packKey;
@@ -83,6 +84,7 @@ class CatalogIT {
     jdbcTemplate = context.getBean(JdbcTemplate.class);
     planCatalog = context.getBean(PlanCatalogService.class);
     packPricing = context.getBean(PackPricingService.class);
+    configuration = context.getBean(BillingConfigurationService.class);
   }
 
   @AfterAll
@@ -101,7 +103,7 @@ class CatalogIT {
 
   private CatalogPlan plan(List<Entitlement> entitlements) {
     return new CatalogPlan(
-        planKey, "Studio", 40, 250_000, 9900, "EUR", "premium", true, true, entitlements);
+        planKey, "Studio", 40, 250_000, 9900, "CAD", "premium", true, true, entitlements);
   }
 
   @Test
@@ -119,6 +121,40 @@ class CatalogIT {
     assertEquals(250_000, saved.monthlyCreditGrant());
     assertEquals(2, saved.entitlements().size());
     assertTrue(planCatalog.list(false).stream().anyMatch(p -> p.planKey().equals(planKey)));
+  }
+
+  @Test
+  @DisplayName("the seeded catalogue bills in Canadian dollars: Free 0, Premium 29, Ultimate 79")
+  void seedsTheCatalogueInCanadianDollars() {
+    assertEquals("CAD", configuration.currency());
+    List<CatalogPlan> seeded =
+        planCatalog.list(false).stream()
+            .filter(p -> List.of("free", "premium", "ultimate").contains(p.planKey()))
+            .toList();
+    assertEquals(3, seeded.size());
+    assertTrue(seeded.stream().allMatch(p -> "CAD".equals(p.currency())));
+    assertEquals(List.of(0, 2900, 7900), seeded.stream().map(CatalogPlan::priceCents).toList());
+  }
+
+  @Test
+  @DisplayName(
+      "a plan saved without a currency takes billing.currency — the block stays multi-currency")
+  void aPlanWithoutACurrencyTakesTheConfiguredOne() {
+    CatalogPlan unpriced =
+        new CatalogPlan(planKey, "Studio", 40, 250_000, 9900, null, "premium", true, true, null);
+    assertEquals("CAD", planCatalog.save(unpriced, ADMIN).currency());
+
+    assertTrue(configuration.update("billing.currency", "EUR", ADMIN));
+    try {
+      assertEquals("EUR", planCatalog.save(unpriced, ADMIN).currency());
+      assertEquals("USD", planCatalog.save(unpriced.withCurrency("usd"), ADMIN).currency());
+    } finally {
+      assertTrue(configuration.update("billing.currency", "CAD", ADMIN));
+    }
+    assertFalse(configuration.update("billing.currency", "XYZ", ADMIN));
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> new CatalogPlan(planKey, "S", 1, 1, 1, "dollars", "premium", true, true, null));
   }
 
   @Test
@@ -317,9 +353,17 @@ class CatalogIT {
     }
 
     @Bean
-    PlanCatalogService planCatalogService(
+    BillingConfigurationService billingConfigurationService(
         JdbcTemplate jdbcTemplate, BillingVersionHistoryService versionHistoryService) {
-      return new PlanCatalogService(jdbcTemplate, versionHistoryService);
+      return new BillingConfigurationService(jdbcTemplate, versionHistoryService);
+    }
+
+    @Bean
+    PlanCatalogService planCatalogService(
+        JdbcTemplate jdbcTemplate,
+        BillingVersionHistoryService versionHistoryService,
+        BillingConfigurationService configuration) {
+      return new PlanCatalogService(jdbcTemplate, versionHistoryService, configuration);
     }
 
     @Bean

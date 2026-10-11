@@ -1,6 +1,8 @@
 package com.krizaka.billing.service.domain.model;
 
+import java.util.Currency;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 
 /**
@@ -12,7 +14,9 @@ import java.util.Objects;
  *     must be unique and meaningful rather than decorative
  * @param monthlyCreditGrant credits granted at each period start
  * @param priceCents list price
- * @param currency ISO currency code
+ * @param currency ISO 4217 code of {@code priceCents}; {@code null} (or blank) means the
+ *     deployment's own currency ({@code billing.currency}), filled in by the catalogue when the
+ *     plan is saved
  * @param rateLimitTierKey opaque reference into identity's rate-limit tiers — no FK
  * @param isPublic whether it appears on the pricing page
  * @param isActive whether it can be subscribed to at all
@@ -38,8 +42,41 @@ public record CatalogPlan(
     if (monthlyCreditGrant < 0 || priceCents < 0) {
       throw new IllegalArgumentException("grant and price must be >= 0");
     }
-    currency = (currency == null || currency.isBlank()) ? "EUR" : currency;
+    currency = normaliseCurrency(currency);
     entitlements = entitlements == null ? List.of() : List.copyOf(entitlements);
+  }
+
+  private static String normaliseCurrency(String code) {
+    if (code == null || code.isBlank()) {
+      return null;
+    }
+    String upper = code.trim().toUpperCase(Locale.ROOT);
+    try {
+      Currency.getInstance(upper);
+    } catch (IllegalArgumentException unknown) {
+      throw new IllegalArgumentException("currency must be an ISO 4217 code, was: " + code);
+    }
+    return upper;
+  }
+
+  /**
+   * Returns a copy priced in the given currency.
+   *
+   * @param code the ISO 4217 code
+   * @return the re-priced plan (same amount, stated currency)
+   */
+  public CatalogPlan withCurrency(String code) {
+    return new CatalogPlan(
+        planKey,
+        label,
+        tierRank,
+        monthlyCreditGrant,
+        priceCents,
+        code,
+        rateLimitTierKey,
+        isPublic,
+        isActive,
+        entitlements);
   }
 
   private static void requireText(String value, String field) {

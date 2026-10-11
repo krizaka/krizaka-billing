@@ -19,6 +19,13 @@ Every Krizaka JVM artifact is released at the same version.
 
 ### Changed
 
+- **Canadian dollars by default.** A new runtime row `billing.currency` (ISO 4217, default `CAD`) is the currency of every
+  amount stated without one; `BillingConfigurationService.currency()` reads it. A plan saved without a currency takes it
+  (`PlanCatalogService`) instead of the former hard-coded `EUR`, and a code that is not ISO 4217 is refused. The seeded
+  plans are Free 0 · Premium 29 · Ultimate 79 **CAD** (were 0 · 19 · 49 EUR), and `billing_plan.currency` has no column
+  default anymore. An existing database: `INSERT INTO billing_runtime_config (config_key, config_value, value_type)
+  VALUES ('billing.currency', 'CAD', 'string') ON CONFLICT DO NOTHING;` then re-price its plans (the Orazaka workspace
+  ships `infra/migrations/2026-10-11-billing-currency-cad.sql`).
 - Built on `krizaka-parent` and `krizaka-platform-kit` **0.2.0** (released on Maven Central); this repository's
   version follows the parent (0.2.0, not yet released).
 - The service host is never published to Maven Central: it is excluded from the Central bundle by name

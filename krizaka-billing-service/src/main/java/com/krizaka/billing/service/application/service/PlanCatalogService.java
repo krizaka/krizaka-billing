@@ -31,13 +31,18 @@ public class PlanCatalogService {
 
   private final JdbcTemplate jdbcTemplate;
   private final BillingVersionHistoryService versionHistoryService;
+  private final BillingConfigurationService configuration;
 
   public PlanCatalogService(
-      JdbcTemplate jdbcTemplate, BillingVersionHistoryService versionHistoryService) {
+      JdbcTemplate jdbcTemplate,
+      BillingVersionHistoryService versionHistoryService,
+      BillingConfigurationService configuration) {
     this.jdbcTemplate = Objects.requireNonNull(jdbcTemplate, "JdbcTemplate cannot be null");
     this.versionHistoryService =
         Objects.requireNonNull(
             versionHistoryService, "BillingVersionHistoryService cannot be null");
+    this.configuration =
+        Objects.requireNonNull(configuration, "BillingConfigurationService cannot be null");
   }
 
   /**
@@ -88,9 +93,13 @@ public class PlanCatalogService {
    * @return the plan as stored
    */
   @Transactional
-  public CatalogPlan save(CatalogPlan plan, String changedBy) {
-    Objects.requireNonNull(plan, "plan must not be null");
+  public CatalogPlan save(CatalogPlan requested, String changedBy) {
+    Objects.requireNonNull(requested, "plan must not be null");
     requireAdmin(changedBy);
+    // A plan that names no currency is priced in the deployment's own (billing.currency) — the
+    // catalogue never guesses one, and never stores a row without it.
+    CatalogPlan plan =
+        requested.currency() == null ? requested.withCurrency(configuration.currency()) : requested;
     find(plan.planKey())
         .ifPresent(
             prior -> versionHistoryService.snapshot(ENTITY_TYPE, plan.planKey(), prior, changedBy));

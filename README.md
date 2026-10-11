@@ -98,6 +98,11 @@ PostgreSQL and RabbitMQ are required; the database, its role (created without a 
 the catalogue come from [`infra/initdb/70-billing.sql`](infra/initdb/70-billing.sql). Prices and the hold TTL are rows,
 not configuration.
 
+> **Currency.** The block is multi-currency: a plan carries its ISO 4217 code, and every amount stated without one (a
+> plan saved without a currency, pack prices, the credit's money anchor) is in the deployment's currency — the runtime
+> row `billing.currency` (admin-editable through `/api/v1/billing/config`, any ISO 4217 code). The default is **`CAD`**
+> (Krizaka is a Montréal company); the seeded catalogue is Free 0 $ · Premium 29 $ · Ultimate 79 $ CAD a month.
+
 > **Messaging.** Billing listens to job outcomes and publishes its events on the exchanges of the platform it runs on:
 > `krizaka.messaging.exchanges.events` / `.dead-letter` (`EVENTS_EXCHANGE` / `DLX_EXCHANGE`, defaults `krizaka.events` /
 > `krizaka.dlx`). It owns the queues `krizaka.billing.settlements` and `krizaka.billing.unmetered`.

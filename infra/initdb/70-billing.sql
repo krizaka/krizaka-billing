@@ -31,7 +31,7 @@ CREATE TABLE billing_plan (
     tier_rank           INT          NOT NULL,          -- ordering for upgrade/downgrade logic
     monthly_credit_grant BIGINT      NOT NULL DEFAULT 0,-- credits granted at each period start
     price_cents         INT          NOT NULL DEFAULT 0,
-    currency            CHAR(3)      NOT NULL DEFAULT 'EUR',
+    currency            CHAR(3)      NOT NULL,          -- ISO 4217; the catalogue writes billing.currency when a plan names none
     rate_limit_tier_key VARCHAR(50)  NOT NULL,          -- OPAQUE ref into identity — no FK
     external_plan_code  VARCHAR(100),                   -- Lago plan code; NULL while local-only
     is_public           BOOLEAN      NOT NULL DEFAULT TRUE,
@@ -344,16 +344,18 @@ INSERT INTO billing_runtime_config (config_key, config_value, value_type, descri
 ('billing.credit.unit-price-millicents', '100',   'int',    'Money anchor: millicents per credit. 1 kilotoken = 10 credits x 100 = 1000 mc = 1 cent, unchanged across the v1->v2 rescale (ADR-047).'),
 ('billing.overshoot.max-credits',   '500',         'int',    'Bounded settlement overshoot allowed rather than killing a stream mid-token (design §17).'),
 ('billing.low-balance.percent',     '10',          'int',    'Threshold that emits evt.wallet.low-balance.'),
-('billing.adjustment.daily-max-credits', '100000', 'int',    'Per-admin ceiling on manual ADJUSTMENT entries (design §12.1).')
+('billing.adjustment.daily-max-credits', '100000', 'int',    'Per-admin ceiling on manual ADJUSTMENT entries (design §12.1).'),
+('billing.currency',                'CAD',         'string', 'ISO 4217 code of every amount stated without one (a plan saved without a currency, pack prices, the money anchor). CAD: Krizaka is a Montreal company.')
 ON CONFLICT (config_key) DO NOTHING;
 
 -- Plans (design §8). Prices and grants are ADMIN DATA — editable live, never in yaml.
 -- rate_limit_tier_key is an opaque reference into identity's rate_limits.
 -- external_plan_code stays NULL: the Lago seam (phase 4) is gated on leaving the local phase.
 INSERT INTO billing_plan (plan_key, label, tier_rank, monthly_credit_grant, price_cents, currency, rate_limit_tier_key, is_public, is_active) VALUES
-('free',     'Free',     1,   500,    0, 'EUR', 'free',       TRUE, TRUE),
-('premium',  'Premium',  2,  5000, 1900, 'EUR', 'premium',    TRUE, TRUE),
-('ultimate', 'Ultimate', 3, 20000, 4900, 'EUR', 'enterprise', TRUE, TRUE)
+-- Canadian dollars (billing.currency): the former EUR 19 / 49 at ~1.55 CAD/EUR, rounded to the x9 price points.
+('free',     'Free',     1,   500,    0, 'CAD', 'free',       TRUE, TRUE),
+('premium',  'Premium',  2,  5000, 2900, 'CAD', 'premium',    TRUE, TRUE),
+('ultimate', 'Ultimate', 3, 20000, 7900, 'CAD', 'enterprise', TRUE, TRUE)
 ON CONFLICT (plan_key) DO NOTHING;
 
 -- The design §8 entitlement matrix. Entitlement gates ACCESS; credits gate VOLUME —
@@ -566,7 +568,7 @@ UPDATE credit_pricebook SET effective_to = now() WHERE version = 1 AND effective
 -- costs. Measured before the change: 37 of 37 metered steps sat under the floor, which charged
 -- 1.95x the rate and made 54% of every credit billed padding rather than work (ADR-046 §3).
 --
--- The price in euros is unmoved because the money anchor moved with the unit: 1 kilotoken was
+-- The price in money is unmoved because the money anchor moved with the unit: 1 kilotoken was
 -- 1 old credit at 1000 millicents, and is 10 new credits at 100 millicents. Same 1000.
 INSERT INTO credit_pricebook (version, capability, model_name, unit, credits_per_unit, minimum_credits, estimate_credits) VALUES
 (2, 'CHAT',  NULL, 'KILOTOKEN',       10.0000,  1,   20),

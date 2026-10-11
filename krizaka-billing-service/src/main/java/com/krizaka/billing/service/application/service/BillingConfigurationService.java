@@ -4,6 +4,7 @@ import com.krizaka.billing.domain.model.EnforcementMode;
 import com.krizaka.billing.service.domain.model.ConfigKeySpec;
 import com.krizaka.billing.service.domain.model.FailMode;
 import java.util.Arrays;
+import java.util.Currency;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -42,6 +43,15 @@ public class BillingConfigurationService {
   static final String KEY_OVERSHOOT_MAX = "billing.overshoot.max-credits";
   static final String KEY_LOW_BALANCE_PERCENT = "billing.low-balance.percent";
   static final String KEY_ADJUSTMENT_DAILY_MAX = "billing.adjustment.daily-max-credits";
+  static final String KEY_CURRENCY = "billing.currency";
+
+  /**
+   * The currency a deployment bills in when nothing else says so: Canadian dollars, Krizaka being a
+   * Montréal company. The block stays multi-currency — a plan may carry its own code, and an
+   * operator sets {@code billing.currency} to any ISO 4217 code; this is only the value of a
+   * missing row.
+   */
+  static final String DEFAULT_CURRENCY = "CAD";
 
   private static final Map<String, ConfigKeySpec> WHITELIST = buildWhitelist();
 
@@ -82,6 +92,12 @@ public class BillingConfigurationService {
     specs.put(
         KEY_ADJUSTMENT_DAILY_MAX,
         new ConfigKeySpec(KEY_ADJUSTMENT_DAILY_MAX, "int", Set.of(), "10000"));
+    Set<String> currencies =
+        Currency.getAvailableCurrencies().stream()
+            .map(Currency::getCurrencyCode)
+            .collect(Collectors.toSet());
+    specs.put(
+        KEY_CURRENCY, new ConfigKeySpec(KEY_CURRENCY, "string", currencies, DEFAULT_CURRENCY));
     return Map.copyOf(specs);
   }
 
@@ -157,6 +173,20 @@ public class BillingConfigurationService {
    */
   public int adjustmentDailyMaxCredits() {
     return readInt(KEY_ADJUSTMENT_DAILY_MAX);
+  }
+
+  /**
+   * The currency of every amount this deployment states without one: a plan saved without a
+   * currency, a pack price, the credit's money anchor.
+   *
+   * @return an ISO 4217 code, {@code CAD} when the row is missing or not a known code
+   */
+  public String currency() {
+    ConfigKeySpec spec = WHITELIST.get(KEY_CURRENCY);
+    return rawValue(KEY_CURRENCY)
+        .map(String::trim)
+        .filter(spec::accepts)
+        .orElse(spec.defaultValue());
   }
 
   /**
