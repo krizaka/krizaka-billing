@@ -394,6 +394,12 @@ INSERT INTO billing_plan_entitlement (plan_key, entitlement_key, value_type, val
 -- entitlement (ADR-034 §8.2). Exempting a TOOLKIT from entitlement would remove one of the four
 -- controls M3 put in front of every run, which is what door 1 did.
 ('free',     'studio.image-generation', 'boolean', 'true'),
+-- The four art-direction Studios of the media TOOLKIT run the image capability, so they inherit
+-- capability.image: granted wherever image generation is.
+('free',     'studio.art-golden-hour', 'boolean', 'true'),
+('free',     'studio.art-miniature', 'boolean', 'true'),
+('free',     'studio.art-still-life', 'boolean', 'true'),
+('free',     'studio.art-montreal-night', 'boolean', 'true'),
 ('free',     'studio.image-analysis',   'boolean', 'true'),
 ('free',     'studio.speech-synthesis', 'boolean', 'false'),
 ('free',     'studio.audio-analysis',   'boolean', 'false'),
@@ -437,6 +443,10 @@ INSERT INTO billing_plan_entitlement (plan_key, entitlement_key, value_type, val
 ('premium',  'studio.followup-sequences', 'boolean', 'true'),
 -- The media TOOLKIT: premium grants capability.audio and capability.video, so it grants all six.
 ('premium',  'studio.image-generation', 'boolean', 'true'),
+('premium',  'studio.art-golden-hour', 'boolean', 'true'),
+('premium',  'studio.art-miniature', 'boolean', 'true'),
+('premium',  'studio.art-still-life', 'boolean', 'true'),
+('premium',  'studio.art-montreal-night', 'boolean', 'true'),
 ('premium',  'studio.image-analysis',   'boolean', 'true'),
 ('premium',  'studio.speech-synthesis', 'boolean', 'true'),
 ('premium',  'studio.audio-analysis',   'boolean', 'true'),
@@ -463,6 +473,10 @@ INSERT INTO billing_plan_entitlement (plan_key, entitlement_key, value_type, val
 ('ultimate', 'studio.followup-sequences', 'boolean', 'true'),
 -- The media TOOLKIT: ultimate grants all three capabilities, so it grants all six Studios.
 ('ultimate', 'studio.image-generation', 'boolean', 'true'),
+('ultimate', 'studio.art-golden-hour', 'boolean', 'true'),
+('ultimate', 'studio.art-miniature', 'boolean', 'true'),
+('ultimate', 'studio.art-still-life', 'boolean', 'true'),
+('ultimate', 'studio.art-montreal-night', 'boolean', 'true'),
 ('ultimate', 'studio.image-analysis',   'boolean', 'true'),
 ('ultimate', 'studio.speech-synthesis', 'boolean', 'true'),
 ('ultimate', 'studio.audio-analysis',   'boolean', 'true'),
