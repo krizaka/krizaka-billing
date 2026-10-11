@@ -1,7 +1,10 @@
 <!-- krizaka-header -->
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/krizaka/.github/main/profile/assets/krizaka.svg" alt="Krizaka" width="72">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/krizaka/.github/main/profile/assets/krizaka-dark.svg">
+  <img src="https://raw.githubusercontent.com/krizaka/.github/main/profile/assets/krizaka-light.svg" alt="Krizaka" width="96">
+</picture>
 
 # Krizaka Billing
 
@@ -11,7 +14,7 @@ Wallets, plans, subscriptions, a versioned price book and metering — hold, set
 contract and a typed client, so every other service bills through one ledger.
 
 [![CI](https://github.com/krizaka/krizaka-billing/actions/workflows/ci.yml/badge.svg)](https://github.com/krizaka/krizaka-billing/actions/workflows/ci.yml)
-[![Maven Central](https://img.shields.io/maven-central/v/com.krizaka/krizaka-billing-api?color=3b82f6&label=maven%20central)](https://central.sonatype.com/namespace/com.krizaka)
+[![Maven Central](https://img.shields.io/maven-central/v/com.krizaka/krizaka-billing-api?color=196df5&label=maven%20central)](https://central.sonatype.com/namespace/com.krizaka)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
 [Open source at Krizaka](https://www.krizaka.com/en/open-source) · [Website](https://www.krizaka.com) · [Krizaka on GitHub](https://github.com/krizaka)
