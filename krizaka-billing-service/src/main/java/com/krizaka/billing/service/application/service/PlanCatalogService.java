@@ -7,6 +7,7 @@ import java.util.Objects;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,6 +34,14 @@ public class PlanCatalogService {
   private final BillingVersionHistoryService versionHistoryService;
   private final BillingConfigurationService configuration;
 
+  /**
+   * The catalogue as wired by Spring.
+   *
+   * @param jdbcTemplate the billing database
+   * @param versionHistoryService where every prior version is snapshotted
+   * @param configuration the runtime config, for {@code billing.currency}
+   */
+  @Autowired
   public PlanCatalogService(
       JdbcTemplate jdbcTemplate,
       BillingVersionHistoryService versionHistoryService,
@@ -43,6 +52,23 @@ public class PlanCatalogService {
             versionHistoryService, "BillingVersionHistoryService cannot be null");
     this.configuration =
         Objects.requireNonNull(configuration, "BillingConfigurationService cannot be null");
+  }
+
+  /**
+   * The catalogue reading {@code billing.currency} from the same database.
+   *
+   * @param jdbcTemplate the billing database
+   * @param versionHistoryService where every prior version is snapshotted
+   * @deprecated kept for binary compatibility; Spring uses the constructor taking the configuration
+   *     service
+   */
+  @Deprecated(since = "0.2.0")
+  public PlanCatalogService(
+      JdbcTemplate jdbcTemplate, BillingVersionHistoryService versionHistoryService) {
+    this(
+        jdbcTemplate,
+        versionHistoryService,
+        new BillingConfigurationService(jdbcTemplate, versionHistoryService));
   }
 
   /**
