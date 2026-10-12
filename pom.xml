@@ -37,7 +37,7 @@
     </issueManagement>
 
     <properties>
-        <archunit.version>1.3.0</archunit.version>
+        <archunit.version>1.5.1</archunit.version>
         <!-- What reaches Maven Central: the libraries, never a runnable service. A *-service module
              sets maven.deploy.skip (the services ship as Docker images, built from source); every
              other module with sources is published, and its jar must stay under
