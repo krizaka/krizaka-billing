@@ -21,6 +21,15 @@
   `excludeArtifacts` (the plugin stages every module of the reactor otherwise). The `publishable-artifact-size` enforcer
   rule fails `verify` when a published jar exceeds 5 MB — a runnable (fat) jar never reaches Central.
 
+## Tests
+
+- **No test, not done.** Every feature and every fix ships with its tests in the same pull request: a unit test for
+  logic, a Testcontainers integration test for an adapter, an endpoint or a flow (`InitDb.locate` reads this
+  repository's schema).
+- **A fix starts with a failing test** that reproduces the bug; the fix turns it green and the test stays as the guard.
+- CI runs them on every pull request and must be green. A test is never skipped, `@Disabled`, weakened or
+  deleted to get there.
+
 ## Definition of done
 
 1. `./mvnw verify -Prelease -Dgpg.skip` is green (unit, Testcontainers integration tests, governance, javadoc).
