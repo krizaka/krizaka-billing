@@ -424,6 +424,7 @@ INSERT INTO billing_plan_entitlement (plan_key, entitlement_key, value_type, val
 ('free',     'studio.guided-journaling', 'boolean', 'true'),
 ('free',     'studio.session-preparation', 'boolean', 'true'),
 ('free',     'studio.mood-tracking', 'boolean', 'true'),
+('free',     'studio.session-summary', 'boolean', 'true'),
 ('premium',  'capability.chat',       'boolean', 'true'),
 ('premium',  'capability.image',      'boolean', 'true'),
 ('premium',  'capability.audio',      'boolean', 'true'),
@@ -458,6 +459,7 @@ INSERT INTO billing_plan_entitlement (plan_key, entitlement_key, value_type, val
 ('premium',  'studio.guided-journaling', 'boolean', 'true'),
 ('premium',  'studio.session-preparation', 'boolean', 'true'),
 ('premium',  'studio.mood-tracking', 'boolean', 'true'),
+('premium',  'studio.session-summary', 'boolean', 'true'),
 ('ultimate', 'capability.chat',       'boolean', 'true'),
 ('ultimate', 'capability.image',      'boolean', 'true'),
 ('ultimate', 'capability.audio',      'boolean', 'true'),
@@ -487,6 +489,7 @@ INSERT INTO billing_plan_entitlement (plan_key, entitlement_key, value_type, val
 ('ultimate', 'studio.guided-journaling', 'boolean', 'true'),
 ('ultimate', 'studio.session-preparation', 'boolean', 'true'),
 ('ultimate', 'studio.mood-tracking', 'boolean', 'true'),
+('ultimate', 'studio.session-summary', 'boolean', 'true'),
 ('ultimate', 'studio.video-analysis',   'boolean', 'true')
 ON CONFLICT (plan_key, entitlement_key) DO NOTHING;
 
@@ -597,6 +600,10 @@ INSERT INTO credit_pricebook (version, capability, model_name, unit, credits_per
 (2, 'AUDIO', 'piper-en-low',         'KILOCHAR',     40.0000, 4,  40),
 (2, 'AUDIO', 'piper-en-medium-ryan', 'KILOCHAR',     40.0000, 4,  40),
 (2, 'AUDIO', 'piper-fr-medium',      'KILOCHAR',     40.0000, 4,  40),
+-- The two fr-FR voices of the voice turn (ADR-076): one female, one male, priced as Piper is.
+-- v2 only — they arrived after v1 was retired, so a fresh database matches one that migrated.
+(2, 'AUDIO', 'piper-fr-siwis-medium', 'KILOCHAR',     40.0000, 4,  40),
+(2, 'AUDIO', 'piper-fr-tom-medium',   'KILOCHAR',     40.0000, 4,  40),
 (2, 'AUDIO', 'tts-1',                'KILOCHAR',     40.0000, 4,  40),
 (2, 'AUDIO', 'whisper-base',         'AUDIO_MINUTE', 60.0000, 6,  60),
 (2, 'AUDIO', 'whisper-tiny-en',      'AUDIO_MINUTE', 60.0000, 6,  60),
