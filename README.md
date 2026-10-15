@@ -126,3 +126,7 @@ Issues and pull requests are welcome — see the organisation's
 ## License
 
 [Apache License 2.0](LICENSE) © 2026 Krizaka
+
+---
+
+<sub>A Krizaka open-source project · [krizaka.com](https://www.krizaka.com) · Apache-2.0</sub>
