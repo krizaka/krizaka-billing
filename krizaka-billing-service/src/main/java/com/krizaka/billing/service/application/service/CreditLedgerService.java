@@ -153,7 +153,7 @@ public class CreditLedgerService {
   @Transactional
   public boolean settleMeasured(String holdId, ConsumptionReport report, String idempotencyKey) {
     Objects.requireNonNull(report, "report must not be null");
-    Optional<CreditHold> maybeHold = findHold(holdId);
+    Optional<CreditHold> maybeHold = findHoldForUpdate(holdId);
     if (maybeHold.isEmpty() || !maybeHold.get().isOpen()) {
       return false;
     }
@@ -201,7 +201,7 @@ public class CreditLedgerService {
    */
   @Transactional
   public boolean settleAggregate(String holdId, List<MeteredStep> steps, String idempotencyKey) {
-    Optional<CreditHold> maybeHold = findHold(holdId);
+    Optional<CreditHold> maybeHold = findHoldForUpdate(holdId);
     if (maybeHold.isEmpty() || !maybeHold.get().isOpen()) {
       return false;
     }
@@ -261,7 +261,8 @@ public class CreditLedgerService {
         hold.estimatedCredits(),
         hold.actorId());
     jdbcTemplate.update(
-        "UPDATE credit_hold SET status = ?, settled_credits = ?, settled_at = now() WHERE id = ?",
+        "UPDATE credit_hold SET status = ?, settled_credits = ?, settled_at = now()"
+            + " WHERE id = ? AND status = 'ACTIVE'",
         HoldStatus.SETTLED.name(),
         fromGranted + fromPurchased,
         hold.id());
@@ -350,7 +351,7 @@ public class CreditLedgerService {
   @Transactional
   public void settle(SettleCreditCommand command, BigDecimal gpuSeconds) {
     Objects.requireNonNull(command, "command must not be null");
-    Optional<CreditHold> maybeHold = findHold(command.holdId());
+    Optional<CreditHold> maybeHold = findHoldForUpdate(command.holdId());
     if (maybeHold.isEmpty() || !maybeHold.get().isOpen()) {
       // Already settled, already released, or a hold from a disabled run. Nothing to do.
       return;
@@ -400,7 +401,8 @@ public class CreditLedgerService {
         hold.estimatedCredits(),
         hold.actorId());
     jdbcTemplate.update(
-        "UPDATE credit_hold SET status = ?, settled_credits = ?, settled_at = now() WHERE id = ?",
+        "UPDATE credit_hold SET status = ?, settled_credits = ?, settled_at = now()"
+            + " WHERE id = ? AND status = 'ACTIVE'",
         HoldStatus.SETTLED.name(),
         fromGranted + fromPurchased,
         hold.id());
@@ -558,7 +560,10 @@ public class CreditLedgerService {
   }
 
   private void releaseInternal(String holdId, String reason, HoldStatus terminal) {
-    Optional<CreditHold> maybeHold = findHold(holdId);
+    // Row lock on the hold: a concurrent settle / release / sweeper blocks here and, once we
+    // commit, re-reads a terminal status and returns. Without it both saw ACTIVE and both
+    // decremented the wallet's `held` (krizaka-billing#16).
+    Optional<CreditHold> maybeHold = findHoldForUpdate(holdId);
     if (maybeHold.isEmpty() || !maybeHold.get().isOpen()) {
       return;
     }
@@ -569,7 +574,7 @@ public class CreditLedgerService {
         hold.estimatedCredits(),
         hold.actorId());
     jdbcTemplate.update(
-        "UPDATE credit_hold SET status = ?, settled_at = now() WHERE id = ?",
+        "UPDATE credit_hold SET status = ?, settled_at = now() WHERE id = ? AND status = 'ACTIVE'",
         terminal.name(),
         hold.id());
     // Counted, not contracted (ADR-046 §2). The policy of settling a failed run's measured cost
@@ -775,7 +780,11 @@ public class CreditLedgerService {
     return holdId;
   }
 
-  private Optional<CreditHold> findHold(String holdId) {
+  private Optional<CreditHold> findHoldForUpdate(String holdId) {
+    return findHold(holdId, " FOR UPDATE");
+  }
+
+  private Optional<CreditHold> findHold(String holdId, String lockClause) {
     UUID id;
     try {
       id = UUID.fromString(holdId);
@@ -786,7 +795,8 @@ public class CreditLedgerService {
     return jdbcTemplate
         .query(
             "SELECT id, actor_id, estimated_credits, status, capability, model_name,"
-                + " pricebook_version FROM credit_hold WHERE id = ?",
+                + " pricebook_version FROM credit_hold WHERE id = ?"
+                + lockClause,
             (rs, rowNum) ->
                 new CreditHold(
                     rs.getObject("id", UUID.class),
