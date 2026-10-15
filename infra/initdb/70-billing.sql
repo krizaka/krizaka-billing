@@ -566,6 +566,7 @@ INSERT INTO credit_pricebook (version, capability, model_name, unit, credits_per
 -- row: logged under DRY_RUN, refused under ENFORCING. Never guess a price for compute.
 (1, 'AUDIO', 'piper-en-low',         'KILOCHAR',     4.0000,  4,   4),
 (1, 'AUDIO', 'piper-en-medium-ryan', 'KILOCHAR',     4.0000,  4,   4),
+(1, 'AUDIO', 'piper-en-medium-ljspeech', 'KILOCHAR',  4.0000,  4,   4),
 (1, 'AUDIO', 'piper-fr-medium',      'KILOCHAR',     4.0000,  4,   4),
 (1, 'AUDIO', 'tts-1',                'KILOCHAR',     4.0000,  4,   4),
 (1, 'AUDIO', 'whisper-base',         'AUDIO_MINUTE', 6.0000,  6,   6),
@@ -599,6 +600,7 @@ INSERT INTO credit_pricebook (version, capability, model_name, unit, credits_per
 (2, 'VIDEO', 'orazaka-compose',        'OUTPUT_SECOND', 20.0000, 2, 300),
 (2, 'AUDIO', 'piper-en-low',         'KILOCHAR',     40.0000, 4,  40),
 (2, 'AUDIO', 'piper-en-medium-ryan', 'KILOCHAR',     40.0000, 4,  40),
+(2, 'AUDIO', 'piper-en-medium-ljspeech', 'KILOCHAR', 40.0000, 4,  40),
 (2, 'AUDIO', 'piper-fr-medium',      'KILOCHAR',     40.0000, 4,  40),
 -- The two fr-FR voices of the voice turn (ADR-076): one female, one male, priced as Piper is.
 -- v2 only — they arrived after v1 was retired, so a fresh database matches one that migrated.
