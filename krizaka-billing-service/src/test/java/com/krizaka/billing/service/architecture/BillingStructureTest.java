@@ -41,22 +41,28 @@ class BillingStructureTest {
   }
 
   @Test
-  @DisplayName("Controllers, services and repositories are named for what they are")
-  void namingConventions() {
+  @DisplayName("Controllers are named *Controller")
+  void controllersNamed() {
     assertDoesNotThrow(
         () -> {
           ArchitectureRules.controllersNamedControllerRule().check(classes);
-          ArchitectureRules.servicesNamedServiceRule().check(classes);
-          ArchitectureRules.repositoriesNamedRepositoryRule().check(classes);
         });
   }
 
   @Test
-  @DisplayName("@Value and the environment are read in configuration only")
-  void configurationOnlyInConfig() {
+  @DisplayName("Services are named *Service")
+  void servicesNamed() {
     assertDoesNotThrow(
         () -> {
-          ArchitectureRules.valueOnlyInConfigRule("..config..").check(classes);
+          ArchitectureRules.servicesNamedServiceRule().check(classes);
+        });
+  }
+
+  @Test
+  @DisplayName("The environment is read in configuration only")
+  void environmentOnlyInConfig() {
+    assertDoesNotThrow(
+        () -> {
           ArchitectureRules.noEnvironmentOutsideConfigRule("..config..").check(classes);
         });
   }

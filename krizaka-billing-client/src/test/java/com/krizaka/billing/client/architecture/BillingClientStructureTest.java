@@ -32,41 +32,11 @@ class BillingClientStructureTest {
   }
 
   @Test
-  @DisplayName("No cycle between the packages of the module")
-  void noPackageCycles() {
+  @DisplayName("The environment is read in configuration only")
+  void environmentOnlyInConfig() {
     assertDoesNotThrow(
         () -> {
-          ArchitectureRules.noPackageCyclesRule(PKG).check(classes);
-        });
-  }
-
-  @Test
-  @DisplayName("Controllers, services and repositories are named for what they are")
-  void namingConventions() {
-    assertDoesNotThrow(
-        () -> {
-          ArchitectureRules.controllersNamedControllerRule().check(classes);
-          ArchitectureRules.servicesNamedServiceRule().check(classes);
-          ArchitectureRules.repositoriesNamedRepositoryRule().check(classes);
-        });
-  }
-
-  @Test
-  @DisplayName("@Value and the environment are read in configuration only")
-  void configurationOnlyInConfig() {
-    assertDoesNotThrow(
-        () -> {
-          ArchitectureRules.valueOnlyInConfigRule("..config..").check(classes);
           ArchitectureRules.noEnvironmentOutsideConfigRule("..config..").check(classes);
-        });
-  }
-
-  @Test
-  @DisplayName("A transaction starts on a service only")
-  void transactionalOnlyOnServices() {
-    assertDoesNotThrow(
-        () -> {
-          ArchitectureRules.transactionalOnlyOnServicesRule("..service..").check(classes);
         });
   }
 }

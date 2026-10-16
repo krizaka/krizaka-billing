@@ -49,6 +49,7 @@ The org code rules (addendum 2026-10-15) are checked by tools, not by review.
   `archunit_store/` (committed); a **new** violation fails, a fixed one leaves the store (commit it). A rule with no store
   fails: record a new rule's debt once with `-Darchunit.freeze.store.default.allowStoreCreation=true`, review the store,
   commit it. Never add a violation to a store by hand to get a build green.
+- A rule never passes over nothing (no `allowEmptyShould`, Orazaka GOV-006): a module applies the rules whose subject it has (a library without controllers does not apply the controller naming rule).
 - A rule is never weakened, skipped or deleted to get a PR green (AGENTS §5.3 of the org); fix the code or freeze the existing debt.
 
 ## Definition of done
