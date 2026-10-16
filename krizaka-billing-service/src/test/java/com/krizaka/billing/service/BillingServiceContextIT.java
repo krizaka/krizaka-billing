@@ -3,8 +3,8 @@ package com.krizaka.billing.service;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.krizaka.test.container.ServiceRoles;
-import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import com.krizaka.test.sql.InitDb;
+import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -30,11 +30,11 @@ import org.testcontainers.utility.MountableFile;
 
 /**
  * The whole billing service, started the way the dev environment runs it (its own {@code
- * application.yml}, the datasource built from {@code krizaka.billing-service.datasource.*}, the real
- * tables and seed of {@code infra/initdb/70-billing.sql}, the shared HS256 secret) and its HTTP
- * chain: 401 without a token, 403 for a user on the admin surface, the seeded plans for a user, and
- * an admin crediting a wallet that the user then reads. A bean or filter change that stops the
- * service from starting fails here, not in the deployment (krizaka-users#18).
+ * application.yml}, the datasource built from {@code krizaka.billing-service.datasource.*}, the
+ * real tables and seed of {@code infra/initdb/70-billing.sql}, the shared HS256 secret) and its
+ * HTTP chain: 401 without a token, 403 for a user on the admin surface, the seeded plans for a
+ * user, and an admin crediting a wallet that the user then reads. A bean or filter change that
+ * stops the service from starting fails here, not in the deployment (krizaka-users#18).
  */
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
