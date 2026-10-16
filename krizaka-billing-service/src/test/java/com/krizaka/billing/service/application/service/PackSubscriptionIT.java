@@ -131,6 +131,40 @@ class PackSubscriptionIT {
   }
 
   @Test
+  @DisplayName(
+      "a FREE pack is included for every actor — a fresh account and a service account — with no subscription")
+  void aFreePackNeedsNoSubscription() {
+    String freeKey = packKey + "-free";
+    packPricing.save(
+        new CatalogPack(
+            freeKey, 0, 0, true, List.of(new Entitlement("studio.free-studio", "boolean", "true"))),
+        ADMIN);
+    seedPack(0, List.of(new Entitlement("studio.paid-studio", "boolean", "true")));
+
+    for (String actor : List.of(actorId, "orochia-service-account", "yomizaka-service-key")) {
+      EntitlementSnapshot snapshot = entitlements.forActor(actor);
+      assertEquals(
+          "true",
+          snapshot.entitlements().get("studio.free-studio"),
+          actor + " runs a free pack's Studio without subscribing");
+      assertFalse(
+          snapshot.entitlements().containsKey("studio.paid-studio"),
+          "a priced pack still needs its subscription");
+    }
+  }
+
+  @Test
+  @DisplayName("an inactive free pack is not included")
+  void anInactiveFreePackIsNotIncluded() {
+    String freeKey = packKey + "-off";
+    packPricing.save(
+        new CatalogPack(
+            freeKey, 0, 0, false, List.of(new Entitlement("studio.off-studio", "boolean", "true"))),
+        ADMIN);
+    assertFalse(entitlements.forActor(actorId).entitlements().containsKey("studio.off-studio"));
+  }
+
+  @Test
   @DisplayName("a pack widens the plan but can never narrow it")
   void theUnionOnlyEverWidens() {
     // The plan the actor falls back to grants concurrency.jobs = 1 and capability.chat = true.

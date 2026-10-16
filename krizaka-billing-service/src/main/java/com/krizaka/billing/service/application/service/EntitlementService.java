@@ -47,6 +47,8 @@ public class EntitlementService {
    * limit would mean buying an add-on could take access away, which nobody would ever intend and
    * which would surface as a support ticket rather than as an error.
    *
+   * <p>Free packs (price 0) are merged for everyone, subscribed or not.
+   *
    * <p>Both reads are keyed on indexes built for this call: it sits on the authorisation hot path
    * and runs once per cached snapshot, not once per request.
    *
@@ -73,6 +75,21 @@ public class EntitlementService {
                 + " WHERE s.actor_id = ? AND s.status IN ('TRIALING','ACTIVE','PAST_DUE')",
             (rs, rowNum) -> Map.entry(rs.getString("entitlement_key"), rs.getString("value")),
             actorId)
+        .forEach(
+            entry ->
+                entitlements.merge(
+                    entry.getKey(), entry.getValue(), EntitlementService::morePermissive));
+
+    // A FREE pack (price 0, active) is included for every actor — a person, a tenant product's
+    // service account —
+    // with no subscription step: nothing is bought, so nothing is held. Same widening merge as a
+    // held pack.
+    jdbcTemplate
+        .query(
+            "SELECT e.entitlement_key, e.value FROM billing_pack_entitlement e"
+                + " JOIN billing_pack p ON p.pack_key = e.pack_key"
+                + " WHERE p.is_active AND p.price_cents = 0",
+            (rs, rowNum) -> Map.entry(rs.getString("entitlement_key"), rs.getString("value")))
         .forEach(
             entry ->
                 entitlements.merge(
