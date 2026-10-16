@@ -172,7 +172,7 @@ class CatalogIT {
             plan(List.of(new Entitlement("capability.video", "boolean", "true"))), ADMIN);
 
     assertEquals(1, narrowed.entitlements().size());
-    assertEquals("capability.video", narrowed.entitlements().get(0).key());
+    assertEquals("capability.video", narrowed.entitlements().getFirst().key());
   }
 
   @Test
@@ -247,7 +247,7 @@ class CatalogIT {
 
     assertEquals(packKey, saved.packKey());
     assertEquals(1, saved.entitlements().size());
-    assertEquals("studio.marketing", saved.entitlements().get(0).key());
+    assertEquals("studio.marketing", saved.entitlements().getFirst().key());
   }
 
   @Test
@@ -307,7 +307,7 @@ class CatalogIT {
     List<CatalogPlan> plans = planCatalog.list(false);
 
     assertTrue(plans.size() >= 3, "free, premium, ultimate");
-    CatalogPlan cheapest = plans.get(0);
+    CatalogPlan cheapest = plans.getFirst();
     assertTrue(
         plans.stream().allMatch(p -> p.tierRank() >= cheapest.tierRank()),
         "ordered by tier_rank, which is how the entry plan is resolved");

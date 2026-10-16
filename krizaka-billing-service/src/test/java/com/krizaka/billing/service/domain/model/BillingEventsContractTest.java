@@ -1,5 +1,7 @@
 package com.krizaka.billing.service.domain.model;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+
 import com.krizaka.test.events.EventContractTest;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -14,33 +16,53 @@ class BillingEventsContractTest extends EventContractTest {
 
   @Test
   void creditGranted() {
-    assertConforms(
-        "evt.credit.granted",
-        1,
-        new CreditGrantedEvent(
-            "user-1", CreditBucket.GRANTED.name(), 500, 1200, "grant", "admin-1", NOW));
+    assertDoesNotThrow(
+        () -> {
+          assertConforms(
+              "evt.credit.granted",
+              1,
+              new CreditGrantedEvent(
+                  "user-1", CreditBucket.GRANTED.name(), 500, 1200, "grant", "admin-1", NOW));
+        });
   }
 
   @Test
   void creditPurchasedBySystem() {
-    assertConforms(
-        "evt.credit.granted",
-        1,
-        new CreditGrantedEvent("user-1", CreditBucket.PURCHASED.name(), 100, 100, null, null, NOW));
+    assertDoesNotThrow(
+        () -> {
+          assertConforms(
+              "evt.credit.granted",
+              1,
+              new CreditGrantedEvent(
+                  "user-1", CreditBucket.PURCHASED.name(), 100, 100, null, null, NOW));
+        });
   }
 
   @Test
   void usageRecorded() {
-    assertConforms(
-        "evt.usage.recorded",
-        1,
-        new UsageRecordedEvent(
-            "user-1", "IMAGE", "flux", "IMAGE", new BigDecimal("2.5"), 40, "hold-1", "corr-1"));
+    assertDoesNotThrow(
+        () -> {
+          assertConforms(
+              "evt.usage.recorded",
+              1,
+              new UsageRecordedEvent(
+                  "user-1",
+                  "IMAGE",
+                  "flux",
+                  "IMAGE",
+                  new BigDecimal("2.5"),
+                  40,
+                  "hold-1",
+                  "corr-1"));
+        });
   }
 
   @Test
   void lowBalance() {
-    assertConforms("evt.wallet.low-balance", 1, new LowBalanceEvent("user-1", 90, 10, NOW));
+    assertDoesNotThrow(
+        () -> {
+          assertConforms("evt.wallet.low-balance", 1, new LowBalanceEvent("user-1", 90, 10, NOW));
+        });
   }
 
   @ParameterizedTest

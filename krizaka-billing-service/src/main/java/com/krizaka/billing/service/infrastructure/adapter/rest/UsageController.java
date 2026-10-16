@@ -26,9 +26,9 @@ import org.springframework.web.bind.annotation.RestController;
 class UsageController {
 
   /** Matches the pricebook preview's replay window, so the two screens agree on "recent". */
-  private static final int DEFAULT_WINDOW_DAYS = 30;
+  private static final String DEFAULT_WINDOW_DAYS = "30";
 
-  private static final int DEFAULT_TOP_CONSUMERS = 20;
+  private static final String DEFAULT_TOP_CONSUMERS = "20";
 
   private final UsageAnalyticsService usageAnalyticsService;
 
@@ -44,8 +44,7 @@ class UsageController {
    * @return one row per capability × model, heaviest spend first
    */
   @GetMapping("/capabilities")
-  List<CapabilityUsage> byCapability(
-      @RequestParam(defaultValue = "" + DEFAULT_WINDOW_DAYS) int days) {
+  List<CapabilityUsage> byCapability(@RequestParam(defaultValue = DEFAULT_WINDOW_DAYS) int days) {
     return usageAnalyticsService.byCapability(Duration.ofDays(days));
   }
 
@@ -58,8 +57,8 @@ class UsageController {
    */
   @GetMapping("/top-consumers")
   List<ActorConsumption> topConsumers(
-      @RequestParam(defaultValue = "" + DEFAULT_WINDOW_DAYS) int days,
-      @RequestParam(defaultValue = "" + DEFAULT_TOP_CONSUMERS) int limit) {
+      @RequestParam(defaultValue = DEFAULT_WINDOW_DAYS) int days,
+      @RequestParam(defaultValue = DEFAULT_TOP_CONSUMERS) int limit) {
     return usageAnalyticsService.topConsumers(Duration.ofDays(days), limit);
   }
 }

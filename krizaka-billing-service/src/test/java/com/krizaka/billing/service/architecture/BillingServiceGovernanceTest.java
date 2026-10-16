@@ -1,5 +1,6 @@
 package com.krizaka.billing.service.architecture;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.krizaka.test.architecture.CodeRules;
@@ -49,38 +50,56 @@ class BillingServiceGovernanceTest {
   @Test
   @DisplayName("[ERR-103] one top-level type per file")
   void oneTopLevelClassPerFile() {
-    CodeRules.assertOneTopLevelClassPerFile(productionClasses, BASE_PACKAGE);
+    assertDoesNotThrow(
+        () -> {
+          CodeRules.assertOneTopLevelClassPerFile(productionClasses, BASE_PACKAGE);
+        });
   }
 
   @Test
   @DisplayName("[ERR-104] no redundant Orazaka prefix")
   void noRedundantPrefix() {
-    CodeRules.assertNoProductPrefix(productionClasses, BASE_PACKAGE, "Krizaka");
+    assertDoesNotThrow(
+        () -> {
+          CodeRules.assertNoProductPrefix(productionClasses, BASE_PACKAGE, "Krizaka");
+        });
   }
 
   @Test
   @DisplayName("[ERR-129] application/service holds only *Service types")
   void servicePackageHoldsOnlyServices() {
-    CodeRules.assertServicePackageOnlyServices(
-        productionClasses, BASE_PACKAGE + ".application.service");
+    assertDoesNotThrow(
+        () -> {
+          CodeRules.assertServicePackageOnlyServices(
+              productionClasses, BASE_PACKAGE + ".application.service");
+        });
   }
 
   @Test
   @DisplayName("[ERR-130] domain/model carries no transport DTOs")
   void domainHasNoTransportDtos() {
-    CodeRules.assertDomainHasNoTransportDtos(productionClasses, BASE_PACKAGE + ".domain");
+    assertDoesNotThrow(
+        () -> {
+          CodeRules.assertDomainHasNoTransportDtos(productionClasses, BASE_PACKAGE + ".domain");
+        });
   }
 
   @Test
   @DisplayName("[AGENTS §4] no field injection")
   void noFieldInjection() {
-    CodeRules.assertNoFieldInjection(productionClasses, BASE_PACKAGE);
+    assertDoesNotThrow(
+        () -> {
+          CodeRules.assertNoFieldInjection(productionClasses, BASE_PACKAGE);
+        });
   }
 
   @Test
   @DisplayName("[AGENTS §4] no System.out / System.err")
   void noStandardStreams() {
-    CodeRules.assertNoStandardStreams(productionClasses);
+    assertDoesNotThrow(
+        () -> {
+          CodeRules.assertNoStandardStreams(productionClasses);
+        });
   }
 
   @Test
@@ -112,33 +131,45 @@ class BillingServiceGovernanceTest {
   @Test
   @DisplayName("[AGENTS.md §4] requests run on virtual threads")
   void requestsRunOnVirtualThreads() {
-    SourceRules.assertVirtualThreadsEnabled(Path.of(System.getProperty("user.dir")));
+    assertDoesNotThrow(
+        () -> {
+          SourceRules.assertVirtualThreadsEnabled(Path.of(System.getProperty("user.dir")));
+        });
   }
 
   @Test
   @DisplayName(
       "[CFG-001] every type the configuration binder builds has a constructor it can choose")
   void configurationBindsUnambiguously() {
-    ConfigBindingRules.assertConfigurationBindsUnambiguously("com.krizaka");
-    ConfigBindingRules.assertInjectableComponentsHaveOneConstructor("com.krizaka");
+    assertDoesNotThrow(
+        () -> {
+          ConfigBindingRules.assertConfigurationBindsUnambiguously("com.krizaka");
+          ConfigBindingRules.assertInjectableComponentsHaveOneConstructor("com.krizaka");
+        });
   }
 
   @Test
   @DisplayName("[ERR-113] No Environment injection in production beans")
   void noEnvironmentInjection() {
-    SourceRules.assertNoEnvironmentInjection(Path.of("src", "main", "java"));
+    assertDoesNotThrow(
+        () -> {
+          SourceRules.assertNoEnvironmentInjection(Path.of("src", "main", "java"));
+        });
   }
 
   @Test
   @DisplayName("[ERR-102] Billing depends on no product")
   void dependsOnNoProduct() {
-    com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses()
-        .that()
-        .resideInAPackage("com.krizaka.billing..")
-        .should()
-        .dependOnClassesThat()
-        .resideInAnyPackage("com.krizaka.orazaka..", "com.orazaka..", "com.orochia..")
-        .because("a Krizaka building block depends on no product — products depend on it")
-        .check(productionClasses);
+    assertDoesNotThrow(
+        () -> {
+          com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses()
+              .that()
+              .resideInAPackage("com.krizaka.billing..")
+              .should()
+              .dependOnClassesThat()
+              .resideInAnyPackage("com.krizaka.orazaka..", "com.orazaka..", "com.orochia..")
+              .because("a Krizaka building block depends on no product — products depend on it")
+              .check(productionClasses);
+        });
   }
 }

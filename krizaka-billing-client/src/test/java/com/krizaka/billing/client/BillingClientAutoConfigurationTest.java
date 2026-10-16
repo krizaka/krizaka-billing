@@ -1,6 +1,7 @@
 package com.krizaka.billing.client;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 import com.krizaka.billing.domain.model.BillableCapability;
 import com.krizaka.billing.domain.model.CreditHoldCommand;
@@ -208,10 +209,15 @@ class BillingClientAutoConfigurationTest {
   @Test
   @DisplayName("an eviction makes the next read go back to billing")
   void evictionForcesARefetch() {
-    // The cache is what the listener exists to correct; evicting an actor it never saw is a no-op
-    // rather than an error, because a plan can change for someone who has not chatted yet.
-    HttpEntitlementProvider provider = new HttpEntitlementProvider(RestClient.builder().build());
+    assertDoesNotThrow(
+        () -> {
+          // The cache is what the listener exists to correct; evicting an actor it never saw is a
+          // no-op
+          // rather than an error, because a plan can change for someone who has not chatted yet.
+          HttpEntitlementProvider provider =
+              new HttpEntitlementProvider(RestClient.builder().build());
 
-    provider.evict("actor-never-seen");
+          provider.evict("actor-never-seen");
+        });
   }
 }

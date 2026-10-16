@@ -38,6 +38,6 @@ public record PricebookPublishRequest(
     if (minimumCredits < 0 || estimateCredits < 0) {
       throw new IllegalArgumentException("minimumCredits and estimateCredits must be >= 0");
     }
-    modelName = (modelName == null || modelName.isBlank()) ? null : modelName;
+    modelName = modelName == null || modelName.isBlank() ? null : modelName;
   }
 }

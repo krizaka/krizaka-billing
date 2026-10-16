@@ -116,10 +116,10 @@ class OutboxDrainIT {
 
     List<OutboxMessage> first = mine(outboxService.lockPendingBatch(100));
     assertEquals(1, first.size());
-    assertEquals("krizaka.events", first.get(0).exchange());
-    assertEquals("evt.subscription.changed", first.get(0).routingKey());
+    assertEquals("krizaka.events", first.getFirst().exchange());
+    assertEquals("evt.subscription.changed", first.getFirst().routingKey());
 
-    outboxService.markPublished(first.get(0).id());
+    outboxService.markPublished(first.getFirst().id());
 
     assertTrue(
         mine(outboxService.lockPendingBatch(100)).isEmpty(),
@@ -131,7 +131,7 @@ class OutboxDrainIT {
   void relaysThePayloadAsStored() {
     outboxService.append("WALLET", aggregateId, "evt.usage.recorded", new Sample("video", 360));
 
-    OutboxMessage event = mine(outboxService.lockPendingBatch(100)).get(0);
+    OutboxMessage event = mine(outboxService.lockPendingBatch(100)).getFirst();
 
     // JSONB normalises key order and spacing, so the assertion is on content rather than layout —
     // what matters is that the relay never re-runs the event through a mapper whose shape may have
@@ -146,7 +146,7 @@ class OutboxDrainIT {
   @DisplayName("a failed publish backs the row off instead of spinning on it")
   void failureBacksOff() {
     outboxService.append("SUBSCRIPTION", aggregateId, "evt.subscription.changed", "{}");
-    OutboxMessage event = mine(outboxService.lockPendingBatch(100)).get(0);
+    OutboxMessage event = mine(outboxService.lockPendingBatch(100)).getFirst();
 
     outboxService.recordFailure(event.id(), event.attempts());
 
@@ -163,7 +163,7 @@ class OutboxDrainIT {
   @DisplayName("a due row returns after its back-off elapses")
   void returnsAfterBackoffElapses() {
     outboxService.append("SUBSCRIPTION", aggregateId, "evt.subscription.changed", "{}");
-    OutboxMessage event = mine(outboxService.lockPendingBatch(100)).get(0);
+    OutboxMessage event = mine(outboxService.lockPendingBatch(100)).getFirst();
     outboxService.recordFailure(event.id(), event.attempts());
 
     jdbcTemplate.update(
@@ -177,7 +177,7 @@ class OutboxDrainIT {
   @DisplayName("housekeeping drops delivered rows and keeps undelivered ones as evidence")
   void purgeKeepsPendingRows() {
     outboxService.append("SUBSCRIPTION", aggregateId, "evt.subscription.changed", "{}");
-    OutboxMessage delivered = mine(outboxService.lockPendingBatch(100)).get(0);
+    OutboxMessage delivered = mine(outboxService.lockPendingBatch(100)).getFirst();
     outboxService.markPublished(delivered.id());
     jdbcTemplate.update(
         "UPDATE billing_outbox SET published_at = now() - INTERVAL '30 days' WHERE id = ?",
@@ -219,7 +219,7 @@ class OutboxDrainIT {
             "{\"plan\":\"pro\"}".getBytes(StandardCharsets.UTF_8),
             envelope));
 
-    OutboxMessage event = mine(outboxService.lockPendingBatch(100)).get(0);
+    OutboxMessage event = mine(outboxService.lockPendingBatch(100)).getFirst();
     assertEquals(messageId.toString(), event.messageId());
     assertEquals(envelope, event.headers());
     assertEquals("evt.subscription.changed", event.routingKey());
@@ -235,7 +235,7 @@ class OutboxDrainIT {
   void aHandAppendedRowHasNoHeaders() {
     outboxService.append("SUBSCRIPTION", aggregateId, "evt.subscription.changed", "{}");
 
-    assertTrue(mine(outboxService.lockPendingBatch(100)).get(0).headers().isEmpty());
+    assertTrue(mine(outboxService.lockPendingBatch(100)).getFirst().headers().isEmpty());
   }
 
   /** A payload with stable field names, so the verbatim-relay assertion is readable. */

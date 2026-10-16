@@ -31,7 +31,7 @@ public record BillingProperties(
 
   /** Compact canonical constructor supplying hot-path-safe defaults (ERR-106). */
   public BillingProperties {
-    baseUrl = (baseUrl == null || baseUrl.isBlank()) ? "http://localhost:8095" : baseUrl;
+    baseUrl = baseUrl == null || baseUrl.isBlank() ? "http://localhost:8095" : baseUrl;
     // Deliberately tight: hold() is a blocking precondition of an interactive request, so a slow
     // billing service must degrade via the fail-mode rather than hold a user's chat turn open.
     connectTimeout = connectTimeout == null ? Duration.ofMillis(500) : connectTimeout;

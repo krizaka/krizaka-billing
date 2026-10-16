@@ -1,6 +1,7 @@
 package com.krizaka.billing.domain.exception;
 
 import com.krizaka.billing.domain.model.BillableCapability;
+import java.io.Serial;
 import java.util.List;
 
 /**
@@ -17,7 +18,7 @@ import java.util.List;
  */
 public class InsufficientCreditsException extends RuntimeException {
 
-  private static final long serialVersionUID = 1L;
+  @Serial private static final long serialVersionUID = 1L;
 
   private final String actorId;
   private final long required;

@@ -1,5 +1,7 @@
 package com.krizaka.billing.domain.exception;
 
+import java.io.Serial;
+
 /**
  * A pack's price or grants could not be written.
  *
@@ -9,7 +11,7 @@ package com.krizaka.billing.domain.exception;
  */
 public class PackProvisioningException extends RuntimeException {
 
-  private static final long serialVersionUID = 1L;
+  @Serial private static final long serialVersionUID = 1L;
 
   /**
    * Creates the exception.

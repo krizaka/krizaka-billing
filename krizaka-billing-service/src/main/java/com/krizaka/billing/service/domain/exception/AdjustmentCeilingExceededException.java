@@ -1,5 +1,7 @@
 package com.krizaka.billing.service.domain.exception;
 
+import java.io.Serial;
+
 /**
  * Thrown when an admin's manual adjustments would pass their daily ceiling (design §12.1).
  *
@@ -10,7 +12,7 @@ package com.krizaka.billing.service.domain.exception;
  */
 public class AdjustmentCeilingExceededException extends RuntimeException {
 
-  private static final long serialVersionUID = 1L;
+  @Serial private static final long serialVersionUID = 1L;
 
   private final transient String adminId;
   private final long requested;

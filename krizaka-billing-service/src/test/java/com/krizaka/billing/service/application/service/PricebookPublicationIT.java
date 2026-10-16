@@ -125,7 +125,7 @@ class PricebookPublicationIT {
     // The superseded row survives, so a hold pinned to it can still be settled at its own price.
     List<PricebookRate> history = pricebookService.history(BillableCapability.CHAT, null);
     assertTrue(history.size() >= 2);
-    assertEquals(published.version(), history.get(0).version(), "newest first");
+    assertEquals(published.version(), history.getFirst().version(), "newest first");
   }
 
   @Test

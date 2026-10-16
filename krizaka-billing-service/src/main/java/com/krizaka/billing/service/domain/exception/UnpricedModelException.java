@@ -1,6 +1,7 @@
 package com.krizaka.billing.service.domain.exception;
 
 import com.krizaka.billing.domain.model.BillableCapability;
+import java.io.Serial;
 
 /**
  * Thrown when no current pricebook row covers a capability × model.
@@ -12,7 +13,7 @@ import com.krizaka.billing.domain.model.BillableCapability;
  */
 public class UnpricedModelException extends RuntimeException {
 
-  private static final long serialVersionUID = 1L;
+  @Serial private static final long serialVersionUID = 1L;
 
   private final BillableCapability capability;
   private final String modelName;
