@@ -104,7 +104,9 @@ class BillingServiceContextIT {
     var builder =
         HttpRequest.newBuilder(URI.create("http://localhost:" + port + path))
             .header("Content-Type", "application/json");
-    if (token != null) builder.header("Authorization", "Bearer " + token);
+    if (token != null) {
+      builder.header("Authorization", "Bearer " + token);
+    }
     builder.method(
         method,
         body == null
