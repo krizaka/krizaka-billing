@@ -37,6 +37,13 @@
     </issueManagement>
 
     <properties>
+        <!-- Security overrides of the Spring Boot BOM (Dependabot alerts): the patched releases of the libraries whose
+             Boot-managed version is vulnerable. Drop each one when krizaka-parent / Spring Boot manages a fixed version. -->
+        <krizaka.security.jackson3.version>3.1.7</krizaka.security.jackson3.version>
+        <krizaka.security.jackson2.version>2.21.7</krizaka.security.jackson2.version>
+        <krizaka.security.amqp-client.version>5.37.0</krizaka.security.amqp-client.version>
+        <krizaka.security.opentelemetry.version>1.62.0</krizaka.security.opentelemetry.version>
+        <krizaka.security.tomcat.version>11.0.25</krizaka.security.tomcat.version>
         <archunit.version>1.5.1</archunit.version>
         <!-- What reaches Maven Central: the libraries, never a runnable service. A *-service module
              sets maven.deploy.skip (the services ship as Docker images, built from source); every
@@ -54,6 +61,48 @@
 
     <dependencyManagement>
         <dependencies>
+            <!-- Security overrides: these come before the Boot BOM, so they win (first declaration wins). -->
+            <dependency>
+                <groupId>tools.jackson</groupId>
+                <artifactId>jackson-bom</artifactId>
+                <version>${krizaka.security.jackson3.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson</groupId>
+                <artifactId>jackson-bom</artifactId>
+                <version>${krizaka.security.jackson2.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.opentelemetry</groupId>
+                <artifactId>opentelemetry-bom</artifactId>
+                <version>${krizaka.security.opentelemetry.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.rabbitmq</groupId>
+                <artifactId>amqp-client</artifactId>
+                <version>${krizaka.security.amqp-client.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.tomcat.embed</groupId>
+                <artifactId>tomcat-embed-core</artifactId>
+                <version>${krizaka.security.tomcat.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.tomcat.embed</groupId>
+                <artifactId>tomcat-embed-el</artifactId>
+                <version>${krizaka.security.tomcat.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.tomcat.embed</groupId>
+                <artifactId>tomcat-embed-websocket</artifactId>
+                <version>${krizaka.security.tomcat.version}</version>
+            </dependency>
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>
