@@ -37,6 +37,10 @@
     </issueManagement>
 
     <properties>
+        <!-- krizaka-parent 0.2.0 (Maven Central) manages Spring Boot 4.0.7, whose netty, postgresql and spring-webmvc are
+             vulnerable (Dependabot critical/high). Boot 4.0.8 patches them, as krizaka-build main already does:
+             drop this line when krizaka-parent 0.2.1 is released. -->
+        <spring-boot.version>4.0.8</spring-boot.version>
         <!-- Security overrides of the Spring Boot BOM (Dependabot alerts): the patched releases of the libraries whose
              Boot-managed version is vulnerable. Drop each one when krizaka-parent / Spring Boot manages a fixed version. -->
         <krizaka.security.jackson3.version>3.1.7</krizaka.security.jackson3.version>
