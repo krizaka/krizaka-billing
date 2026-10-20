@@ -20,7 +20,7 @@ concurrency:
 
 jobs:
   maven:
-    uses: krizaka/.github/.github/workflows/maven.yml@main
+    uses: krizaka/.github/.github/workflows/maven.yml@6f09de86398ea1cecc323dc93b62ee496adb7d84 # main
     with:
       upstreams: "krizaka-build krizaka-platform-kit"
       rewrite: true

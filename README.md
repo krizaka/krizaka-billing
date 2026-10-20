@@ -14,6 +14,7 @@ Wallets, plans, subscriptions, a versioned price book and metering — hold, set
 contract and a typed client, so every other service bills through one ledger.
 
 [![CI](https://github.com/krizaka/krizaka-billing/actions/workflows/ci.yml/badge.svg)](https://github.com/krizaka/krizaka-billing/actions/workflows/ci.yml)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/krizaka/krizaka-billing/badge)](https://scorecard.dev/viewer/?uri=github.com/krizaka/krizaka-billing)
 [![Maven Central](https://img.shields.io/maven-central/v/com.krizaka/krizaka-billing-api?color=196df5&label=maven%20central)](https://central.sonatype.com/namespace/com.krizaka)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
