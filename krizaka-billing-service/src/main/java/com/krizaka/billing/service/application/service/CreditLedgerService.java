@@ -54,6 +54,9 @@ public class CreditLedgerService {
 
   private static final String SYSTEM_ACTOR = "system";
 
+  // @fixed: the size of one sweeper transaction, a lock-time bound rather than a business parameter
+  public static final int DEFAULT_SWEEP_BATCH = 100;
+
   private final JdbcTemplate jdbcTemplate;
   private final PricingService pricingService;
   private final BillingConfigurationService configurationService;
@@ -422,25 +425,36 @@ public class CreditLedgerService {
   }
 
   /**
-   * Releases every {@code ACTIVE} hold past its TTL.
+   * Releases one batch of {@code ACTIVE} holds past their TTL (the oldest first).
    *
    * <p>Without this a crashed worker freezes a user's balance permanently — the most commonly
-   * omitted component of credit systems, which is why it is scheduled rather than manual.
+   * omitted component of credit systems, which is why it is scheduled rather than manual. The batch
+   * is bounded so a backlog never becomes one long transaction holding every row lock; the caller
+   * repeats until a batch comes back short. {@code SKIP LOCKED}: a hold a settle or a release is
+   * working on is left to it.
    *
-   * @return how many holds were swept
+   * @param batchSize the most holds this call (and so this transaction) may release
+   * @return how many holds were swept; fewer than {@code batchSize} means none are left
    */
   @Transactional
-  public int sweepExpiredHolds() {
+  public int sweepExpiredHolds(int batchSize) {
     List<String> expired =
         jdbcTemplate.queryForList(
-            "SELECT id FROM credit_hold WHERE status = ? AND expires_at < now()",
+            "SELECT id FROM credit_hold WHERE status = ? AND expires_at < now()"
+                + " ORDER BY expires_at LIMIT ? FOR UPDATE SKIP LOCKED",
             String.class,
-            HoldStatus.ACTIVE.name());
+            HoldStatus.ACTIVE.name(),
+            batchSize);
     expired.forEach(id -> releaseInternal(id, "hold TTL expired", HoldStatus.EXPIRED));
     if (!expired.isEmpty()) {
       log.info("Hold sweeper released {} expired hold(s)", expired.size());
     }
     return expired.size();
+  }
+
+  /** One batch of {@value #DEFAULT_SWEEP_BATCH} holds; see {@link #sweepExpiredHolds(int)}. */
+  public int sweepExpiredHolds() {
+    return sweepExpiredHolds(DEFAULT_SWEEP_BATCH);
   }
 
   /**

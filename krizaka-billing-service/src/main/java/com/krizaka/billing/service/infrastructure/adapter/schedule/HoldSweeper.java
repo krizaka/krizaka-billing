@@ -26,8 +26,17 @@ class HoldSweeper {
         Objects.requireNonNull(creditLedgerService, "CreditLedgerService cannot be null");
   }
 
+  // @fixed: a tick that finds a huge backlog stops after this many batches; the next tick continues
+  static final int MAX_BATCHES_PER_TICK = 50;
+
+  /** Releases the expired holds batch by batch (one short transaction each) until none are left. */
   @Scheduled(fixedDelayString = "${krizaka.billing-service.sweeper.interval:60000}")
   void sweep() {
-    creditLedgerService.sweepExpiredHolds();
+    int batch = CreditLedgerService.DEFAULT_SWEEP_BATCH;
+    for (int i = 0; i < MAX_BATCHES_PER_TICK; i++) {
+      if (creditLedgerService.sweepExpiredHolds(batch) < batch) {
+        return;
+      }
+    }
   }
 }

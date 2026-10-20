@@ -206,6 +206,27 @@ class CreditLedgerInvariantsIT {
   }
 
   @Test
+  @DisplayName(
+      "[§15] the sweeper works in bounded batches, oldest first, and a short batch means none are left")
+  void expiredHoldsAreSweptInBatches() {
+    giveGrantedBalance(500);
+    for (int i = 0; i < 3; i++) {
+      CreditHoldResponse hold = ledgerService.hold(chatHold(10));
+      jdbcTemplate.update(
+          "UPDATE credit_hold SET expires_at = now() - INTERVAL '1 hour' WHERE id = ?::uuid",
+          hold.holdId());
+    }
+    assertEquals(30, wallet().held());
+
+    assertEquals(2, ledgerService.sweepExpiredHolds(2), "a batch never exceeds its size");
+    assertEquals(10, wallet().held(), "only the swept holds were returned");
+    assertEquals(
+        1, ledgerService.sweepExpiredHolds(2), "the last, short batch empties the backlog");
+    assertEquals(0, wallet().held());
+    assertEquals(0, ledgerService.sweepExpiredHolds(2));
+  }
+
+  @Test
   @DisplayName("[§15] an expired hold cannot leak — the sweeper returns it")
   void expiredHoldIsSwept_andHeldCreditsAreReturned() {
     giveGrantedBalance(500);
