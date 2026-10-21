@@ -5,11 +5,11 @@ import com.krizaka.billing.domain.port.EntitlementProvider;
 import com.krizaka.billing.domain.port.PackPricingClient;
 import com.krizaka.billing.domain.port.PackProvisioningClient;
 import com.krizaka.security.token.ServiceTokenProvider;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
@@ -25,7 +25,7 @@ import org.springframework.web.client.RestClient;
  * <p>Registered through the AutoConfiguration SPI so a consuming service inherits it by adding the
  * dependency, without widening its component scan.
  */
-@Configuration(proxyBeanMethods = false)
+@AutoConfiguration
 @EnableConfigurationProperties(BillingProperties.class)
 @Import(EntitlementCacheInvalidationConfiguration.class)
 public class BillingClientAutoConfiguration {

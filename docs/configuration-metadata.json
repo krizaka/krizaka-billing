@@ -1,0 +1,32 @@
+{
+  "repository" : "krizaka-billing",
+  "modules" : [ {
+    "artifact" : "krizaka-billing-client",
+    "properties" : [ {
+      "name" : "krizaka.billing.base-url",
+      "type" : "java.lang.String",
+      "description" : "Internal base URL of the billing service.",
+      "defaultValue" : "http://localhost:8095"
+    }, {
+      "name" : "krizaka.billing.connect-timeout",
+      "type" : "java.time.Duration",
+      "description" : "How long a call waits for the connection; tight, billing sits on the interactive path.",
+      "defaultValue" : "500ms"
+    }, {
+      "name" : "krizaka.billing.enabled",
+      "type" : "java.lang.Boolean",
+      "description" : "Whether the HTTP adapters are wired instead of the no-op ones. Off by default: a fresh clone runs the whole stack without billing.",
+      "defaultValue" : false
+    }, {
+      "name" : "krizaka.billing.read-timeout",
+      "type" : "java.time.Duration",
+      "description" : "How long a call waits for the response; tight, a slow billing service must degrade through the fail modes rather than hold a request open.",
+      "defaultValue" : "2s"
+    }, {
+      "name" : "krizaka.billing.service-secret",
+      "type" : "java.lang.String",
+      "description" : "Shared HS256 identity secret the SERVICE token of every call is signed with, which /internal/v1/** requires. Required when billing is enabled."
+    } ],
+    "hints" : [ ]
+  } ]
+}

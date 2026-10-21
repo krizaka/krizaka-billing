@@ -62,6 +62,11 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>tools.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <scope>test</scope>
+        </dependency>
         <!-- EventContractTest: SubscriptionChangeListener's copy of the subscription and pack
              events reads what billing's schemas accept. -->
         <dependency>
@@ -73,6 +78,21 @@
 
     <build>
         <plugins>
+            <!-- The configuration metadata is part of the contract (an IDE completes krizaka.billing.*):
+                 the processor runs explicitly, JDK 23+ no longer discovers it on the classpath. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.springframework.boot</groupId>
+                            <artifactId>spring-boot-configuration-processor</artifactId>
+                            <version>${spring-boot.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
