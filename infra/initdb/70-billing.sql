@@ -651,3 +651,16 @@ ON CONFLICT DO NOTHING;
 
 
 
+
+-- ADR-085: every operator write of billing, who/what/target/request/outcome (ids only, never content).
+CREATE TABLE IF NOT EXISTS operator_audit (
+    id BIGSERIAL PRIMARY KEY,
+    at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    actor_id VARCHAR(255),
+    actor_label VARCHAR(255) NOT NULL,
+    action VARCHAR(120) NOT NULL,
+    target_id VARCHAR(255),
+    request_id VARCHAR(64),
+    outcome VARCHAR(12) NOT NULL DEFAULT 'ok'
+);
+CREATE INDEX IF NOT EXISTS idx_operator_audit_at ON operator_audit(at DESC);
