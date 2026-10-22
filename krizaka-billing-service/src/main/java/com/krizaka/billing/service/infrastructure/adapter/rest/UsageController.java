@@ -1,12 +1,18 @@
 package com.krizaka.billing.service.infrastructure.adapter.rest;
 
+import com.krizaka.billing.service.application.service.ActorUsageService;
 import com.krizaka.billing.service.application.service.UsageAnalyticsService;
 import com.krizaka.billing.service.domain.model.ActorConsumption;
+import com.krizaka.billing.service.domain.model.ActorUsage;
 import com.krizaka.billing.service.domain.model.CapabilityUsage;
 import java.time.Duration;
+import java.time.YearMonth;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Objects;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -31,8 +37,12 @@ class UsageController {
   private static final String DEFAULT_TOP_CONSUMERS = "20";
 
   private final UsageAnalyticsService usageAnalyticsService;
+  private final ActorUsageService actorUsageService;
 
-  UsageController(UsageAnalyticsService usageAnalyticsService) {
+  UsageController(
+      UsageAnalyticsService usageAnalyticsService, ActorUsageService actorUsageService) {
+    this.actorUsageService =
+        Objects.requireNonNull(actorUsageService, "ActorUsageService cannot be null");
     this.usageAnalyticsService =
         Objects.requireNonNull(usageAnalyticsService, "UsageAnalyticsService cannot be null");
   }
@@ -60,5 +70,23 @@ class UsageController {
       @RequestParam(defaultValue = DEFAULT_WINDOW_DAYS) int days,
       @RequestParam(defaultValue = DEFAULT_TOP_CONSUMERS) int limit) {
     return usageAnalyticsService.topConsumers(Duration.ofDays(days), limit);
+  }
+
+  /**
+   * The caller's own usage and cost for a calendar month.
+   *
+   * <p>Resolved from the token's subject, never a parameter: a product calling with its own API key
+   * reads its own usage, and cannot read another product's. Open to any authenticated actor.
+   *
+   * @param month {@code yyyy-MM} (UTC), the current month when absent
+   * @param user the authenticated actor
+   * @return the month's usage, priced, with the plan in force
+   */
+  @GetMapping("/me")
+  @PreAuthorize("isAuthenticated()")
+  ActorUsage myUsage(
+      @RequestParam(required = false) YearMonth month, @AuthenticationPrincipal Jwt user) {
+    YearMonth target = month != null ? month : YearMonth.now(ZoneOffset.UTC);
+    return actorUsageService.forMonth(user.getSubject(), target);
   }
 }

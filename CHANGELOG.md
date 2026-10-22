@@ -8,6 +8,8 @@ Every Krizaka JVM artifact is released at the same version.
 
 ### Added
 
+- `GET /api/v1/billing/usage/me?month=yyyy-MM`: the caller's own usage and cost for a calendar month (credits, events, cost at the money anchor, per capability × model, plan and unspent grant). The actor is the token's subject, so a product calling with its own API key reads its own usage and no other.
+
 - Event contracts: `krizaka-billing-api` publishes the JSON Schema (draft 2020-12) of each billing event —
   `evt.turn.unmetered`, `evt.credit.granted`, `evt.usage.recorded`, `evt.wallet.low-balance`,
   `evt.subscription.changed|canceled|renewed`, `evt.pack.subscribed|canceled` (`events/<routing-key>.v1.json`).
