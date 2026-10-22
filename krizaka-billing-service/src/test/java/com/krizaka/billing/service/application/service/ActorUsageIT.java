@@ -99,8 +99,8 @@ class ActorUsageIT {
     assertEquals(3, u.events());
     assertEquals(550, u.creditsCharged());
     assertEquals(2, u.byCapability().size());
-    assertEquals("VIDEO", u.byCapability().get(0).capability()); // heaviest first
-    assertEquals(400, u.byCapability().get(0).creditsCharged());
+    assertEquals("VIDEO", u.byCapability().getFirst().capability()); // heaviest first
+    assertEquals(400, u.byCapability().getFirst().creditsCharged());
     assertEquals(550L * u.unitPriceMillicents(), u.costMillicents());
     assertTrue(u.unitPriceMillicents() > 0);
     assertEquals("CAD", u.currency());
