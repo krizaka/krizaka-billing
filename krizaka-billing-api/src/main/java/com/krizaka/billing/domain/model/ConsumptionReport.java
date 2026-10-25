@@ -57,6 +57,8 @@ public record ConsumptionReport(
     Long calls) {
 
   private static final BigDecimal PER_KILO = new BigDecimal("1000");
+  private static final BigDecimal SECONDS_PER_MINUTE = new BigDecimal("60");
+  private static final BigDecimal PIXELS_PER_MEGAPIXEL = new BigDecimal("1000000");
 
   /**
    * The report as it was before {@code calls}, kept so a caller compiled against it still links
@@ -101,9 +103,6 @@ public record ConsumptionReport(
         durationSeconds,
         null);
   }
-
-  private static final BigDecimal SECONDS_PER_MINUTE = new BigDecimal("60");
-  private static final BigDecimal PIXELS_PER_MEGAPIXEL = new BigDecimal("1000000");
 
   /**
    * Converts this report into the quantity the given unit is priced in.
