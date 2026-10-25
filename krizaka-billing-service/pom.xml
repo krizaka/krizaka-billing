@@ -119,6 +119,7 @@
         <dependency>
             <groupId>com.krizaka</groupId>
             <artifactId>krizaka-test-support</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.tngtech.archunit</groupId>
