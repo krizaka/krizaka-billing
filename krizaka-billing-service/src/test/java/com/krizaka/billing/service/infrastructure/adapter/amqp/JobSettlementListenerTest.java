@@ -45,7 +45,7 @@ class JobSettlementListenerTest {
 
   private static final ConsumptionReport RENDERED_48_FRAMES =
       new ConsumptionReport(
-          new BigDecimal("31.4"), 48, 12, null, null, null, null, null, null, null, null);
+          new BigDecimal("31.4"), 48, 12, null, null, null, null, null, null, null, null, null);
 
   private JobOutcomeEvent completed(ConsumptionReport consumption) {
     return new JobOutcomeEvent("job-1", HOLD, consumption, null);

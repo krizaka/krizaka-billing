@@ -34,8 +34,13 @@ import java.util.Optional;
  *     measurement OUTPUT_SECOND wants: {@code frames / fps} only ever approached it, and getting
  *     that quotient to work is why the composer was made to force a constant frame rate on every
  *     file it wrote (ADR-063). Changing the artefact so the meter works is backwards, so the meter
- *     changed instead (ADR-066). Last in the component list because the wire reads by name and only
- *     constructors read by position
+ *     changed instead (ADR-066). Appended after {@code tokens} because the wire reads by name and
+ *     only constructors read by position
+ * @param calls billable calls made to an external provider — an external check, a research lookup.
+ *     Present, it is the {@link BillableUnit#CALL} quantity: {@code 0} settles nothing (the hold is
+ *     released) and a negative count is refused the same way, never read as one call. Absent, a
+ *     {@code CALL} stays the flat per-outcome fee it always was. Last in the component list for the
+ *     same reason as {@code durationSeconds}: constructors read by position
  */
 public record ConsumptionReport(
     BigDecimal gpuSeconds,
@@ -48,7 +53,8 @@ public record ConsumptionReport(
     Long characters,
     BigDecimal audioSeconds,
     Long tokens,
-    BigDecimal durationSeconds) {
+    BigDecimal durationSeconds,
+    Long calls) {
 
   private static final BigDecimal PER_KILO = new BigDecimal("1000");
   private static final BigDecimal SECONDS_PER_MINUTE = new BigDecimal("60");
@@ -72,9 +78,24 @@ public record ConsumptionReport(
       case AUDIO_MINUTE -> divide(audioSeconds, SECONDS_PER_MINUTE);
       case KILOTOKEN -> ratio(tokens, PER_KILO);
       case GPU_SECOND -> positive(gpuSeconds);
-        // A flat per-invocation fee: reaching a terminal outcome at all is the measurement.
-      case CALL -> Optional.of(BigDecimal.ONE);
+      case CALL -> callCount();
     };
+  }
+
+  /**
+   * The {@code CALL} quantity. A producer that counts its calls is read exactly: zero calls bills
+   * nothing, and a negative count is a defect the ledger must not price, so it fails closed to
+   * nothing as well. A producer that counts nothing keeps the flat fee: reaching a terminal outcome
+   * at all is the measurement (one orchestration, one call).
+   */
+  private Optional<BigDecimal> callCount() {
+    if (calls == null) {
+      return Optional.of(BigDecimal.ONE);
+    }
+    if (calls <= 0) {
+      return Optional.empty();
+    }
+    return Optional.of(BigDecimal.valueOf(calls));
   }
 
   /**

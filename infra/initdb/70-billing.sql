@@ -187,7 +187,7 @@ CREATE TABLE credit_hold (
     estimated_credits  BIGINT       NOT NULL,
     settled_credits    BIGINT,
     status             VARCHAR(20)  NOT NULL,  -- ACTIVE|SETTLED|RELEASED|EXPIRED
-    capability         VARCHAR(50)  NOT NULL,  -- CHAT|IMAGE|AUDIO|VIDEO|AGENT (mirrors business.api.Capability, contract-copied)
+    capability         VARCHAR(50)  NOT NULL,  -- CHAT|IMAGE|AUDIO|VIDEO|AGENT|EXTERNAL_CHECK|RESEARCH (mirrors BillableCapability; BillingSchemaCapabilityTest)
     model_name         VARCHAR(255),
     pricebook_version  INT          NOT NULL,  -- pin the rate: a mid-flight price change cannot corrupt settlement
     correlation_id     VARCHAR(255) NOT NULL,  -- Intention.id — ties a hold to its whole agent run
@@ -677,7 +677,22 @@ INSERT INTO credit_pricebook (version, capability, model_name, unit, credits_per
 -- whisper rows (60/min) only because this path does the transcription AND the keyframe extraction
 -- on one pass of the same hardware; the real number wants a measured run, like every other rate
 -- flagged in this file.
-(2, 'VIDEO', 'orazaka-video-analysis', 'AUDIO_MINUTE', 45.0000, 5, 90)
+(2, 'VIDEO', 'orazaka-video-analysis', 'AUDIO_MINUTE', 45.0000, 5, 90),
+-- Calls to providers outside the engine, priced per CALL with `model_name` = the provider key
+-- (orazaka-packs#138). The quantity is the `calls` the executor reports (0 settles nothing, the
+-- hold is released in full); a report without `calls` is one call.
+--
+-- EXTERNAL_CHECK: court records, credit, identity checks. 'mock' is the connector the engine runs
+-- until the pilot's go (orazaka-ai-engine#90); a real provider gets its own row at its own price.
+-- RESEARCH: grounded research (ADR-087); 'law-corpus' is a read of the engine's own law corpus.
+--
+-- ⚠ PLACEHOLDERS, like every rate in this file. EXTERNAL_CHECK sits at the AGENT/CALL rate (50) —
+-- never below what an orchestration call costs; RESEARCH/law-corpus at 10, a local read, above the
+-- $5 per 1000 requests ADR-087 quotes for a paid search API (5 credits). Same floor as AGENT.
+-- v2 only, like the fr-FR voices: a fresh database matches one migrated by
+-- infra/migrations/2026-10-25-pricebook-external-check-research.sql.
+(2, 'EXTERNAL_CHECK', 'mock',       'CALL', 50.0000, 5, 50),
+(2, 'RESEARCH',       'law-corpus', 'CALL', 10.0000, 5, 10)
 ON CONFLICT DO NOTHING;
 
 

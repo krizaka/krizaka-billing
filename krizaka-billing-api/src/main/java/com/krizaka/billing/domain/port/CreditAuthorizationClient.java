@@ -61,8 +61,8 @@ public interface CreditAuthorizationClient {
    * is one unit of work and wrong for a run that is many: a Studio run holds once against AGENT and
    * then spends across CHAT, IMAGE and VIDEO, whose work is priced in three different units. Sent
    * through {@code settleMeasured}, such a run settles at the AGENT rate for whichever step
-   * happened to finish first — {@code quantityFor(CALL)} being a constant 1 — and the rest is free
-   * (ADR-041).
+   * happened to finish first — {@code quantityFor(CALL)} being 1 when no {@code calls} is reported
+   * — and the rest is free (ADR-041).
    *
    * <p>Each step is priced against ITS OWN row, at the version the hold pinned, and the credits are
    * summed into a single debit. One hold, one settlement, one ledger entry — with one {@code

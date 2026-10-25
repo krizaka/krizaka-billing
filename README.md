@@ -38,7 +38,7 @@ Built for and used by [Orazaka](https://github.com/krizaka/orazaka); usable by a
 | Entitlement check — `SERVICE` only | `/internal/v1/billing/entitlements/{actorId}` |
 
 A caller **holds** credits before expensive work, then **settles** the actual cost or **releases** the hold; holds that
-are never settled expire. The ledger is append-only and every debit carries an idempotency key, on top of message
+are never settled expire. A cost is priced by the price book row `(capability, model)` — `CHAT`, `IMAGE`, `AUDIO`, `VIDEO`, `AGENT`, `EXTERNAL_CHECK`, `RESEARCH` — in that row's unit, from the measurements the executor reports (`ConsumptionReport`: tokens, frames, duration… and `calls` for a provider billed per `CALL`). The ledger is append-only and every debit carries an idempotency key, on top of message
 deduplication: a redelivered settlement is processed once. Billing events leave through a transactional outbox
 (relayed by `krizaka-messaging`); it also implements `OutboxStore.append`, so an `EventPublisher` can write to it with
 its `messageId` and envelope headers (`billing_outbox.headers jsonb`), published as stored.

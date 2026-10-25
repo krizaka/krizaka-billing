@@ -34,5 +34,19 @@ public enum BillableCapability {
    * Agent loops and workflow runs — a roll-up of children plus an orchestration {@link
    * BillableUnit#CALL}.
    */
-  AGENT
+  AGENT,
+
+  /**
+   * A call to an external check provider — court records, credit, identity. Metered in {@link
+   * BillableUnit#CALL}; the pricebook's {@code model_name} is the connector's provider key (e.g.
+   * {@code mock}).
+   */
+  EXTERNAL_CHECK,
+
+  /**
+   * A grounded-research operation — a search, a fetch, a read of an official source or a law corpus
+   * (ADR-087). Metered in {@link BillableUnit#CALL}; the pricebook's {@code model_name} is the
+   * provider key (e.g. {@code law-corpus}).
+   */
+  RESEARCH
 }

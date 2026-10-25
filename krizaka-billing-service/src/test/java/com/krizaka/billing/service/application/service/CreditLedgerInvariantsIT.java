@@ -264,7 +264,18 @@ class CreditLedgerInvariantsIT {
         ledgerService.settleMeasured(
             hold.holdId(),
             new ConsumptionReport(
-                new BigDecimal("31.4"), 48, 12, null, null, null, null, null, null, null, null),
+                new BigDecimal("31.4"),
+                48,
+                12,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null),
             "measured-" + actorId);
 
     assertTrue(settled, "a report the pricebook's unit can be derived from settles");
@@ -291,7 +302,18 @@ class CreditLedgerInvariantsIT {
         ledgerService.settleMeasured(
             hold.holdId(),
             new ConsumptionReport(
-                new BigDecimal("31.4"), null, null, null, null, null, null, null, null, null, null),
+                new BigDecimal("31.4"),
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null),
             "unpriceable-" + actorId);
 
     assertFalse(settled);
@@ -324,20 +346,20 @@ class CreditLedgerInvariantsIT {
                     BillableCapability.CHAT,
                     null,
                     new ConsumptionReport(
-                        null, null, null, null, null, null, null, null, null, 3400L, null)),
+                        null, null, null, null, null, null, null, null, null, 3400L, null, null)),
                 // IMAGE: 1 image, 4 steps, 1024×1024 = 4.194304 megapixel-steps × 1.9073 → 8
                 // credits.
                 new MeteredStep(
                     BillableCapability.IMAGE,
                     null,
                     new ConsumptionReport(
-                        null, null, null, 1, 4, 1024, 1024, null, null, null, null)),
+                        null, null, null, 1, 4, 1024, 1024, null, null, null, null, null)),
                 // VIDEO at the compose rate: 450 frames at 30fps = 15s × 2.0 → 30 credits.
                 new MeteredStep(
                     BillableCapability.VIDEO,
                     "orazaka-compose",
                     new ConsumptionReport(
-                        null, 450, 30, null, null, null, null, null, null, null, null))),
+                        null, 450, 30, null, null, null, null, null, null, null, null, null))),
             "studio-run-" + actorId);
 
     assertTrue(settled);
@@ -382,7 +404,7 @@ class CreditLedgerInvariantsIT {
                     BillableCapability.IMAGE,
                     "llava:latest",
                     new ConsumptionReport(
-                        null, null, null, null, null, null, null, null, null, 4200L, null))),
+                        null, null, null, null, null, null, null, null, null, 4200L, null, null))),
             "vision-" + actorId);
 
     assertTrue(settled, "a vision step must be billable, not free");
@@ -409,7 +431,8 @@ class CreditLedgerInvariantsIT {
             new MeteredStep(
                 BillableCapability.IMAGE,
                 null,
-                new ConsumptionReport(null, null, null, 1, 4, 1024, 1024, null, null, null, null))),
+                new ConsumptionReport(
+                    null, null, null, 1, 4, 1024, 1024, null, null, null, null, null))),
         "generation-" + actorId);
 
     assertEquals(5000 - 80, wallet().balanceGranted(), "4.19 megapixel-steps x 19.073 -> 80");
@@ -432,7 +455,7 @@ class CreditLedgerInvariantsIT {
                 BillableCapability.VIDEO,
                 "orazaka-compose",
                 new ConsumptionReport(
-                    null, 450, 30, null, null, null, null, null, null, null, null))),
+                    null, 450, 30, null, null, null, null, null, null, null, null, null))),
         "compose-" + actorId);
 
     // 15s x 20.0 = 300 credits (ADR-047). At VIDEO's default diffusion rate the same assembly
@@ -468,6 +491,7 @@ class CreditLedgerInvariantsIT {
                         null,
                         null,
                         null,
+                        null,
                         null))),
             "unmeasured-" + actorId);
 
@@ -489,7 +513,7 @@ class CreditLedgerInvariantsIT {
                 BillableCapability.CHAT,
                 null,
                 new ConsumptionReport(
-                    null, null, null, null, null, null, null, null, null, 3400L, null)));
+                    null, null, null, null, null, null, null, null, null, 3400L, null, null)));
 
     ledgerService.settleAggregate(hold.holdId(), steps, "replay-" + actorId);
     ledgerService.settleAggregate(hold.holdId(), steps, "replay-" + actorId);
@@ -510,7 +534,7 @@ class CreditLedgerInvariantsIT {
         ledgerService.settleMeasured(
             hold.holdId(),
             new ConsumptionReport(
-                null, null, null, null, null, null, null, null, null, 3400L, null),
+                null, null, null, null, null, null, null, null, null, 3400L, null, null),
             "chat:" + hold.holdId());
 
     assertTrue(settled);
@@ -519,6 +543,72 @@ class CreditLedgerInvariantsIT {
         jdbcTemplate.queryForObject(
             "SELECT unit FROM usage_event WHERE hold_id = ?::uuid", String.class, hold.holdId());
     assertEquals("KILOTOKEN", unit);
+  }
+
+  private static ConsumptionReport calls(long calls) {
+    return new ConsumptionReport(
+        null, null, null, null, null, null, null, null, null, null, null, calls);
+  }
+
+  @Test
+  @DisplayName("an external check settles per CALL at its seeded rate, one debit per call made")
+  void settleMeasured_pricesExternalChecksPerCall() {
+    giveGrantedBalance(5000);
+    CreditHoldResponse hold =
+        ledgerService.hold(
+            new CreditHoldCommand(
+                actorId,
+                BillableCapability.EXTERNAL_CHECK,
+                "mock",
+                "correlation-" + actorId,
+                "job-check",
+                150));
+
+    boolean settled = ledgerService.settleMeasured(hold.holdId(), calls(3), "check-" + actorId);
+
+    assertTrue(settled);
+    assertEquals(5000 - 150, wallet().balanceGranted(), "3 calls x 50 credits");
+    assertEquals(0, wallet().held());
+    String unit =
+        jdbcTemplate.queryForObject(
+            "SELECT unit FROM usage_event WHERE hold_id = ?::uuid", String.class, hold.holdId());
+    assertEquals("CALL", unit);
+  }
+
+  @Test
+  @DisplayName("a law-corpus read settles per CALL at the RESEARCH rate")
+  void settleMeasured_pricesResearchPerCall() {
+    giveGrantedBalance(5000);
+    CreditHoldResponse hold =
+        ledgerService.hold(
+            new CreditHoldCommand(
+                actorId,
+                BillableCapability.RESEARCH,
+                "law-corpus",
+                "correlation-" + actorId,
+                "job-research",
+                20));
+
+    assertTrue(ledgerService.settleMeasured(hold.holdId(), calls(2), "research-" + actorId));
+    assertEquals(5000 - 20, wallet().balanceGranted(), "2 reads x 10 credits");
+  }
+
+  @Test
+  @DisplayName("a check that made zero calls is not settled — the caller releases it in full")
+  void settleMeasured_zeroCallsIsNotSettled() {
+    giveGrantedBalance(5000);
+    CreditHoldResponse hold =
+        ledgerService.hold(
+            new CreditHoldCommand(
+                actorId,
+                BillableCapability.EXTERNAL_CHECK,
+                "mock",
+                "correlation-" + actorId,
+                "job-check-0",
+                0));
+
+    assertFalse(ledgerService.settleMeasured(hold.holdId(), calls(0), "check0-" + actorId));
+    assertEquals(5000, wallet().balanceGranted(), "no call made, nothing billed");
   }
 
   @Test

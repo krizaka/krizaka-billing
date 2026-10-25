@@ -8,6 +8,16 @@ Every Krizaka JVM artifact is released at the same version.
 
 ### Added
 
+- Billable capabilities `EXTERNAL_CHECK` (court records, credit, identity checks) and `RESEARCH` (grounded research,
+  ADR-087), both metered per `CALL` with `model_name` = the provider key. Seeded at pricebook v2:
+  `(EXTERNAL_CHECK, mock)` 50 credits/call and `(RESEARCH, law-corpus)` 10 credits/call (placeholders, floor 5). An
+  existing database: `infra/migrations/2026-10-25-pricebook-external-check-research.sql` (idempotent). The
+  `evt.turn.unmetered` schema's `capability` enum lists them; `BillingSchemaCapabilityTest` and
+  `UnmeteredTurnContractTest` fail when the enum, the schema comment, the seed or the event schema drift apart.
+- `ConsumptionReport` gains `calls` (`Long`, nullable, the **last** component — the wire reads by name, constructors
+  by position). Present, it is the `CALL` quantity: `3` bills three calls, `0` or a negative count settles nothing
+  (the hold is released). Absent, a `CALL` is still one per terminal outcome. A caller constructing the record adds
+  one trailing argument (orazaka-packs#138).
 - `GET /api/v1/billing/usage/me?month=yyyy-MM`: the caller's own usage and cost for a calendar month (credits, events, cost at the money anchor, per capability × model, plan and unspent grant). The actor is the token's subject, so a product calling with its own API key reads its own usage and no other.
 
 - Event contracts: `krizaka-billing-api` publishes the JSON Schema (draft 2020-12) of each billing event —

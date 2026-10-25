@@ -22,7 +22,9 @@
         "IMAGE",
         "AUDIO",
         "VIDEO",
-        "AGENT"
+        "AGENT",
+        "EXTERNAL_CHECK",
+        "RESEARCH"
       ]
     },
     "correlationId": {
