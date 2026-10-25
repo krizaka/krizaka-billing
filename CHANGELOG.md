@@ -16,8 +16,9 @@ Every Krizaka JVM artifact is released at the same version.
   `UnmeteredTurnContractTest` fail when the enum, the schema comment, the seed or the event schema drift apart.
 - `ConsumptionReport` gains `calls` (`Long`, nullable, the **last** component — the wire reads by name, constructors
   by position). Present, it is the `CALL` quantity: `3` bills three calls, `0` or a negative count settles nothing
-  (the hold is released). Absent, a `CALL` is still one per terminal outcome. A caller constructing the record adds
-  one trailing argument (orazaka-packs#138).
+  (the hold is released). Absent, a `CALL` is still one per terminal outcome. The former 11-argument constructor stays
+  (binary compatible, japicmp) and means « no count »; a caller that counts calls uses the 12-argument canonical one
+  (orazaka-packs#138).
 - `GET /api/v1/billing/usage/me?month=yyyy-MM`: the caller's own usage and cost for a calendar month (credits, events, cost at the money anchor, per capability × model, plan and unspent grant). The actor is the token's subject, so a product calling with its own API key reads its own usage and no other.
 
 - Event contracts: `krizaka-billing-api` publishes the JSON Schema (draft 2020-12) of each billing event —

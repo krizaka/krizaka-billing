@@ -57,6 +57,51 @@ public record ConsumptionReport(
     Long calls) {
 
   private static final BigDecimal PER_KILO = new BigDecimal("1000");
+
+  /**
+   * The report as it was before {@code calls}, kept so a caller compiled against it still links
+   * (binary compatibility, japicmp) and still means what it meant: no count of calls, so a {@code
+   * CALL} is the flat per-outcome fee.
+   *
+   * @param gpuSeconds see the record components
+   * @param frames see the record components
+   * @param fps see the record components
+   * @param images see the record components
+   * @param steps see the record components
+   * @param width see the record components
+   * @param height see the record components
+   * @param characters see the record components
+   * @param audioSeconds see the record components
+   * @param tokens see the record components
+   * @param durationSeconds see the record components
+   */
+  public ConsumptionReport(
+      BigDecimal gpuSeconds,
+      Integer frames,
+      Integer fps,
+      Integer images,
+      Integer steps,
+      Integer width,
+      Integer height,
+      Long characters,
+      BigDecimal audioSeconds,
+      Long tokens,
+      BigDecimal durationSeconds) {
+    this(
+        gpuSeconds,
+        frames,
+        fps,
+        images,
+        steps,
+        width,
+        height,
+        characters,
+        audioSeconds,
+        tokens,
+        durationSeconds,
+        null);
+  }
+
   private static final BigDecimal SECONDS_PER_MINUTE = new BigDecimal("60");
   private static final BigDecimal PIXELS_PER_MEGAPIXEL = new BigDecimal("1000000");
 

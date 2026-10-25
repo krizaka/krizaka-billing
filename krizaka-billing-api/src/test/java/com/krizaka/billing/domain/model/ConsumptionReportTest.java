@@ -120,6 +120,16 @@ class ConsumptionReportTest {
   }
 
   @Test
+  @DisplayName("the report built without `calls` keeps no count, so a CALL stays one per outcome")
+  void theConstructorWithoutCallsKeepsTheFlatFee() {
+    ConsumptionReport legacy =
+        new ConsumptionReport(null, null, null, null, null, null, null, null, null, 3400L, null);
+
+    assertEquals(null, legacy.calls());
+    assertEquals(0, quantity(legacy, BillableUnit.CALL).compareTo(BigDecimal.ONE));
+  }
+
+  @Test
   @DisplayName("zero calls settles nothing: a check that never reached its provider is released")
   void zeroCallsDerivesNothing() {
     assertTrue(calls(0L).quantityFor(BillableUnit.CALL).isEmpty());
