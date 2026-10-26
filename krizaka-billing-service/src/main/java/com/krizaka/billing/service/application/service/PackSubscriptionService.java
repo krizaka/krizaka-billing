@@ -139,12 +139,16 @@ public class PackSubscriptionService {
     Instant subscribedAt = Instant.now();
     try {
       jdbcTemplate.update(
-          "INSERT INTO billing_pack_subscription (id, actor_id, pack_key, status, subscribed_at)"
-              + " VALUES (?, ?, ?, ?, ?)",
+          "INSERT INTO billing_pack_subscription (id, actor_id, pack_key, status, subscribed_at,"
+              + " price_version_id) VALUES (?, ?, ?, ?, ?, (SELECT version_id FROM billing_price"
+              + " WHERE price_key = ? AND effective_from <= ? ORDER BY effective_from DESC"
+              + " LIMIT 1))",
           id,
           actorId,
           packKey,
           SubscriptionStatus.ACTIVE.name(),
+          java.sql.Timestamp.from(subscribedAt),
+          PackPricingService.PRICE_KEY_PREFIX + packKey,
           java.sql.Timestamp.from(subscribedAt));
     } catch (DuplicateKeyException raced) {
       // Two concurrent subscribes: the index picked a winner, so return what it wrote rather

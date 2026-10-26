@@ -32,8 +32,22 @@ public class PackPricingService {
 
   private static final String ENTITY_TYPE = "PACK";
 
+  /**
+   * A pack's price lives in the catalogue under {@code orazaka.<packKey>} (krizaka/orazaka#417).
+   */
+  static final String PRICE_KEY_PREFIX = "orazaka.";
+
+  /**
+   * The amount is read through the catalogue by key (one source): the entry in force now when it
+   * has a figure, the column only for a pack the catalogue does not price.
+   */
   private static final String SELECT_COLUMNS =
-      "SELECT pack_key, price_cents, included_credits, is_active";
+      "SELECT pack_key, COALESCE((SELECT p.amount_cents FROM billing_price p"
+          + " WHERE p.price_key = '"
+          + PRICE_KEY_PREFIX
+          + "' || billing_pack.pack_key AND p.effective_from <= now()"
+          + " ORDER BY p.effective_from DESC LIMIT 1), price_cents) AS price_cents,"
+          + " included_credits, is_active";
 
   private final JdbcTemplate jdbcTemplate;
   private final BillingVersionHistoryService versionHistoryService;
