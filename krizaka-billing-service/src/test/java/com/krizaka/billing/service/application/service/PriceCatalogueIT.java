@@ -113,14 +113,14 @@ class PriceCatalogueIT {
   void publicViewHidesInternalAndFigures() {
     List<PriceView> view = prices.publicCatalogue();
     assertTrue(view.stream().noneMatch(v -> v.key().startsWith("orazaka.credits")));
-    assertTrue(view.stream().noneMatch(v -> v.key().equals("orazaka.sentinelle")));
+    assertTrue(view.stream().noneMatch(v -> "orazaka.sentinelle".equals(v.key())));
     PriceView business =
-        view.stream().filter(v -> v.key().equals("orazaka.business")).findFirst().orElseThrow();
+        view.stream().filter(v -> "orazaka.business".equals(v.key())).findFirst().orElseThrow();
     assertNull(business.amountCents());
     assertEquals(
         0L,
         view.stream()
-            .filter(v -> v.key().equals("orazaka.community"))
+            .filter(v -> "orazaka.community".equals(v.key()))
             .findFirst()
             .orElseThrow()
             .amountCents());
