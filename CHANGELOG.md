@@ -8,6 +8,7 @@ Every Krizaka JVM artifact is released at the same version.
 
 ### Added
 
+- Price catalogue (krizaka/orazaka#417, ADR-009): `billing_price` (dated, append-only versions, audit in `billing_version_history`), seeded with Orazaka's defaults; `GET /api/v1/billing/prices` (public view: no `internal`, `preparing` without figure) and `/admin` (entries, `POST /admin/{key}/schedule`, `/admin/{key}/history`); packs read their amount through it by key (`orazaka.<packKey>`) and a pack subscription stores its `price_version_id`. Existing databases: `infra/migrations/2026-10-26-price-catalogue.sql`.
 - Billable capabilities `EXTERNAL_CHECK` (court records, credit, identity checks) and `RESEARCH` (grounded research,
   ADR-087), both metered per `CALL` with `model_name` = the provider key. Seeded at pricebook v2:
   `(EXTERNAL_CHECK, mock)` 50 credits/call and `(RESEARCH, law-corpus)` 10 credits/call (placeholders, floor 5). An
