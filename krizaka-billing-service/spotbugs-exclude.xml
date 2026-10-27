@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- SpotBugs baseline (krizaka-build#105): measured by scripts/quality-baseline.mjs, never typed. It only shrinks. -->
+<FindBugsFilter>
+    <Match>
+        <Class name="com.krizaka.billing.service.application.service.CreditAdjustmentService"/>
+        <Bug pattern="SQL_INJECTION_SPRING_JDBC"/>
+    </Match>
+    <Match>
+        <Class name="com.krizaka.billing.service.application.service.CreditLedgerService"/>
+        <Bug pattern="SQL_INJECTION_SPRING_JDBC"/>
+    </Match>
+    <Match>
+        <Class name="com.krizaka.billing.service.application.service.PackPricingService"/>
+        <Bug pattern="SQL_INJECTION_SPRING_JDBC"/>
+    </Match>
+    <Match>
+        <Class name="com.krizaka.billing.service.application.service.PlanCatalogService"/>
+        <Bug pattern="SQL_INJECTION_SPRING_JDBC"/>
+    </Match>
+</FindBugsFilter>
