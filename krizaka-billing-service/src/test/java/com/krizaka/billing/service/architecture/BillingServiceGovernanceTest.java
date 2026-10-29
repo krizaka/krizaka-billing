@@ -167,7 +167,7 @@ class BillingServiceGovernanceTest {
               .resideInAPackage("com.krizaka.billing..")
               .should()
               .dependOnClassesThat()
-              .resideInAnyPackage("com.krizaka.orazaka..", "com.orazaka..", "com.orochia..")
+              .resideInAnyPackage("com.krizaka.orazaka..", "com.orazaka..")
               .because("a Krizaka building block depends on no product — products depend on it")
               .check(productionClasses);
         });

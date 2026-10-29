@@ -141,7 +141,7 @@ class PackSubscriptionIT {
         ADMIN);
     seedPack(0, List.of(new Entitlement("studio.paid-studio", "boolean", "true")));
 
-    for (String actor : List.of(actorId, "orochia-service-account", "yomizaka-service-key")) {
+    for (String actor : List.of(actorId, "orazaka-service-account", "yomizaka-service-key")) {
       EntitlementSnapshot snapshot = entitlements.forActor(actor);
       assertEquals(
           "true",
