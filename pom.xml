@@ -37,6 +37,9 @@
     </issueManagement>
 
     <properties>
+        <!-- Deliberate pre-1.0 break (krizaka-billing#80): CatalogPlan gains overageCreditPriceCents, trialDays and
+             freeMonthlyCredits (parent POM: a minor before 1.0 sets this for that release). Remove after the release. -->
+        <japicmp.breakBuildOnBinaryIncompatibleModifications>false</japicmp.breakBuildOnBinaryIncompatibleModifications>
         <!-- krizaka-parent 0.2.0 (Maven Central) manages Spring Boot 4.0.7, whose netty, postgresql and spring-webmvc are
              vulnerable (Dependabot critical/high). Boot 4.0.8 patches them, as krizaka-build main already does:
              drop this line when krizaka-parent 0.2.1 is released. -->
