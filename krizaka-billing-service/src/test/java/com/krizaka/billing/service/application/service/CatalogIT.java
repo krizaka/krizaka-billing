@@ -103,7 +103,19 @@ class CatalogIT {
 
   private CatalogPlan plan(List<Entitlement> entitlements) {
     return new CatalogPlan(
-        planKey, "Studio", 40, 250_000, 9900, "CAD", "premium", true, true, entitlements);
+        planKey,
+        "Studio",
+        40,
+        250_000,
+        9900,
+        "CAD",
+        "premium",
+        true,
+        true,
+        null,
+        0,
+        null,
+        entitlements);
   }
 
   @Test
@@ -141,7 +153,8 @@ class CatalogIT {
       "a plan saved without a currency takes billing.currency — the block stays multi-currency")
   void aPlanWithoutACurrencyTakesTheConfiguredOne() {
     CatalogPlan unpriced =
-        new CatalogPlan(planKey, "Studio", 40, 250_000, 9900, null, "premium", true, true, null);
+        new CatalogPlan(
+            planKey, "Studio", 40, 250_000, 9900, null, "premium", true, true, null, 0, null, null);
     assertEquals("CAD", planCatalog.save(unpriced, ADMIN).currency());
 
     assertTrue(configuration.update("billing.currency", "EUR", ADMIN));
@@ -154,7 +167,9 @@ class CatalogIT {
     assertFalse(configuration.update("billing.currency", "XYZ", ADMIN));
     assertThrows(
         IllegalArgumentException.class,
-        () -> new CatalogPlan(planKey, "S", 1, 1, 1, "dollars", "premium", true, true, null));
+        () ->
+            new CatalogPlan(
+                planKey, "S", 1, 1, 1, "dollars", "premium", true, true, null, 0, null, null));
   }
 
   @Test

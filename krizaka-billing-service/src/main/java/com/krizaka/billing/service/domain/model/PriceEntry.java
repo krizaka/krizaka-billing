@@ -36,7 +36,7 @@ public record PriceEntry(
 
   /** Compact canonical constructor enforcing the entry's invariants. */
   public PriceEntry {
-    if (key == null || !key.matches("[a-z][A-Za-z0-9]*\\.[A-Za-z][A-Za-z0-9]*")) {
+    if (key == null || !key.matches("[a-z][A-Za-z0-9]*\\.[A-Za-z][A-Za-z0-9_-]*")) {
       throw new IllegalArgumentException("key must be product.plan: " + key);
     }
     if (unit == null || availability == null || effectiveFrom == null) {

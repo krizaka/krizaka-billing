@@ -30,8 +30,11 @@ CREATE TABLE billing_plan (
     label               VARCHAR(100) NOT NULL,
     tier_rank           INT          NOT NULL,          -- ordering for upgrade/downgrade logic
     monthly_credit_grant BIGINT      NOT NULL DEFAULT 0,-- credits granted at each period start
-    price_cents         INT          NOT NULL DEFAULT 0,
+    price_cents         INT          NOT NULL DEFAULT 0, -- fallback only: the price in force is the billing_price version 'plan.<plan_key>'
     currency            CHAR(3)      NOT NULL,          -- ISO 4217; the catalogue writes billing.currency when a plan names none
+    overage_credit_price_cents INT,                     -- price of one credit beyond the grant + free allowance; NULL = no overage (usage stops at the balance)
+    trial_days          INT          NOT NULL DEFAULT 0, -- length of the trial a TRIALING subscription gets; 0 = no trial
+    free_monthly_credits BIGINT,                        -- credits free of charge each month on top of the grant; NULL = none
     rate_limit_tier_key VARCHAR(50)  NOT NULL,          -- OPAQUE ref into identity — no FK
     external_plan_code  VARCHAR(100),                   -- Lago plan code; NULL while local-only
     is_public           BOOLEAN      NOT NULL DEFAULT TRUE,
@@ -123,6 +126,7 @@ CREATE TABLE billing_subscription (
     period_end            TIMESTAMPTZ  NOT NULL,
     cancel_at_period_end  BOOLEAN      NOT NULL DEFAULT FALSE,
     external_subscription_id VARCHAR(255),         -- Lago; NULL while local-only
+    price_version_id      UUID,                    -- billing_price.version_id the plan was taken at: a change of price never reaches a held subscription
     created_at            TIMESTAMPTZ  NOT NULL DEFAULT now(),
     updated_at            TIMESTAMPTZ  NOT NULL DEFAULT now()
 );
@@ -710,6 +714,9 @@ CREATE TABLE billing_price (
 );
 
 INSERT INTO billing_price (price_key, unit, amount_cents, availability, limits, effective_from, created_by) VALUES
+('plan.free',          'month', 0,      'public',    '{}',                                          '1970-01-01', 'seed'),
+('plan.premium',       'month', 2900,   'public',    '{}',                                          '1970-01-01', 'seed'),
+('plan.ultimate',      'month', 7900,   'public',    '{}',                                          '1970-01-01', 'seed'),
 ('orazaka.community',          'year',  0,      'public',    '{}',                                          '1970-01-01', 'seed'),
 ('orazaka.business',           'year',  290000, 'preparing', '{}',                                          '1970-01-01', 'seed'),
 ('orazaka.businessMonthly',    'month', 29000,  'preparing', '{}',                                          '1970-01-01', 'seed'),
