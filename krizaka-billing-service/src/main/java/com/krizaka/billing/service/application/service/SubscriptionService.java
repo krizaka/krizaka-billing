@@ -88,21 +88,56 @@ public class SubscriptionService {
     closeLive(actorId, SubscriptionStatus.CANCELED);
 
     Instant periodStart = Instant.now();
-    Instant periodEnd = periodStart.plus(PERIOD_DAYS, ChronoUnit.DAYS);
+    int days = status == SubscriptionStatus.TRIALING ? trialDays(planKey) : 0;
+    Instant periodEnd = periodStart.plus(days > 0 ? days : PERIOD_DAYS, ChronoUnit.DAYS);
+    // The subscription keeps the price version in force now: a later change of the plan's price
+    // never reaches it (krizaka-billing#80).
     jdbcTemplate.update(
-        "INSERT INTO billing_subscription (actor_id, plan_key, status, period_start, period_end)"
-            + " VALUES (?, ?, ?, ?, ?)",
+        "INSERT INTO billing_subscription (actor_id, plan_key, status, period_start, period_end,"
+            + " price_version_id) VALUES (?, ?, ?, ?, ?, (SELECT p.version_id FROM billing_price p"
+            + " WHERE p.price_key = ? AND p.effective_from <= now()"
+            + " ORDER BY p.effective_from DESC LIMIT 1))",
         actorId,
         planKey,
         status.name(),
         java.sql.Timestamp.from(periodStart),
-        java.sql.Timestamp.from(periodEnd));
+        java.sql.Timestamp.from(periodEnd),
+        PlanCatalogService.PRICE_KEY_PREFIX + planKey);
 
     SubscriptionView view =
         new SubscriptionView(actorId, planKey, status, periodStart, periodEnd, false);
     announce("evt.subscription.changed", view);
     log.info("Actor {} moved to plan {} ({})", actorId, planKey, status);
     return view;
+  }
+
+  /**
+   * What the actor's subscription is billed per month: the price of the version it was taken at.
+   *
+   * @param actorId the opaque billable subject
+   * @return the amount in cents, empty without a live subscription or one that predates versions
+   */
+  public Optional<Long> billedPriceCents(String actorId) {
+    return jdbcTemplate
+        .query(
+            "SELECT p.amount_cents FROM billing_subscription s JOIN billing_price p"
+                + " ON p.version_id = s.price_version_id WHERE s.actor_id = ?"
+                + " AND s.status IN ('TRIALING','ACTIVE','PAST_DUE') AND p.amount_cents IS NOT NULL",
+            (rs, rowNum) -> rs.getLong(1),
+            actorId)
+        .stream()
+        .findFirst();
+  }
+
+  private int trialDays(String planKey) {
+    return jdbcTemplate
+        .query(
+            "SELECT trial_days FROM billing_plan WHERE plan_key = ?",
+            (rs, rowNum) -> rs.getInt(1),
+            planKey)
+        .stream()
+        .findFirst()
+        .orElse(0);
   }
 
   /**
