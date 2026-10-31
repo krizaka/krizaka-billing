@@ -21,6 +21,7 @@ concurrency:
 jobs:
   # Fail before a tag: a pin of the org maven.yml older than be08be83 cannot write to GitHub Packages (a dead tag).
   maven-pin-guard:
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     permissions:
       contents: read
