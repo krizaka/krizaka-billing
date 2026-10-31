@@ -7,7 +7,7 @@
     <parent>
         <groupId>com.krizaka</groupId>
         <artifactId>krizaka-billing</artifactId>
-        <version>0.2.0</version>
+        <version>0.3.4</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 

@@ -19,9 +19,21 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  # Fail before a tag: a pin of the org maven.yml older than be08be83 cannot write to GitHub Packages (a dead tag).
+  maven-pin-guard:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: krizaka/.github/actions/maven-pin-guard@a30e6939c7ac95121daa6aebb63f9f4531a53240 # main
+
   maven:
-    uses: krizaka/.github/.github/workflows/maven.yml@99281c3f4b46dbe4c645dff053b4bfb387a1403d # main
+    permissions:
+      contents: read
+      packages: write
+    uses: krizaka/.github/.github/workflows/maven.yml@6bfc6ea4053a7e6378e0af9a0ec7ef95f963c30a # main
     with:
-      upstreams: "krizaka-build krizaka-platform-kit"
+      registry: github   # GitHub Packages (ADR-019): krizaka-parent, the BOM and the kit resolve from there, no upstream checkout
       rewrite: true
     secrets: inherit # zizmor: ignore[secrets-inherit] the org's own pinned pipeline; it reads SONAR_TOKEN and nothing else of the repository's secrets
