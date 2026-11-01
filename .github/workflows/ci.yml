@@ -26,13 +26,13 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: krizaka/.github/actions/maven-pin-guard@a30e6939c7ac95121daa6aebb63f9f4531a53240 # main
+      - uses: krizaka/.github/actions/maven-pin-guard@ea12aa78187da74ed63387383885c85606bf4051 # main
 
   maven:
     permissions:
       contents: read
       packages: write
-    uses: krizaka/.github/.github/workflows/maven.yml@6bfc6ea4053a7e6378e0af9a0ec7ef95f963c30a # main
+    uses: krizaka/.github/.github/workflows/maven.yml@ea12aa78187da74ed63387383885c85606bf4051 # main
     with:
       registry: github   # GitHub Packages (ADR-019): krizaka-parent, the BOM and the kit resolve from there, no upstream checkout
       rewrite: true
